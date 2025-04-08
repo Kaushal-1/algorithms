@@ -24,6 +24,9 @@ const Navbar = () => {
           <Link to="/code-review" className={`text-sm transition-colors ${location.pathname === '/code-review' ? 'text-primary' : 'text-foreground/80 hover:text-primary'}`}>
             Code Review
           </Link>
+          <Link to="/code-history" className={`text-sm transition-colors ${location.pathname === '/code-history' ? 'text-primary' : 'text-foreground/80 hover:text-primary'}`}>
+            History
+          </Link>
           <a href="#community" className="text-sm text-foreground/80 hover:text-primary transition-colors">
             Community
           </a>
