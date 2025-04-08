@@ -43,7 +43,7 @@ const MOCK_SUBMISSIONS = [
     language: 'Java',
     date: '3 days ago',
     status: 'passed' as const,
-    feedbackSummary: 'Excellent solution using Floyd's cycle-finding algorithm.'
+    feedbackSummary: "Excellent solution using Floyd's cycle-finding algorithm."
   },
   {
     id: '5',
@@ -61,7 +61,7 @@ const MOCK_SUBMISSIONS = [
     language: 'Python',
     date: 'Last week',
     status: 'passed' as const,
-    feedbackSummary: 'Good implementation of Kadane's algorithm, optimal solution.'
+    feedbackSummary: "Good implementation of Kadane's algorithm, optimal solution."
   }
 ];
 
