@@ -2,16 +2,17 @@
 import React from 'react';
 import { Button } from "@/components/ui/button";
 import { Github } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const Navbar = () => {
   return (
     <nav className="py-4 px-4 md:px-8 w-full fixed top-0 bg-algos-dark/90 backdrop-blur-sm z-50 border-b border-border">
       <div className="max-w-7xl mx-auto flex justify-between items-center">
-        <a href="/" className="flex items-center">
+        <Link to="/" className="flex items-center">
           <span className="text-2xl font-bold text-white font-heading">
             ALGORITHMS<span className="text-primary">.</span>
           </span>
-        </a>
+        </Link>
         
         <div className="hidden md:flex items-center space-x-8">
           <a href="#courses" className="text-sm text-foreground/80 hover:text-primary transition-colors">
@@ -34,12 +35,16 @@ const Navbar = () => {
           >
             <Github size={20} />
           </a>
-          <Button variant="ghost" className="text-foreground/80 hover:text-primary hover:bg-transparent">
-            Sign In
-          </Button>
-          <Button className="bg-primary hover:bg-primary/90 text-primary-foreground">
-            Get Started
-          </Button>
+          <Link to="/login">
+            <Button variant="ghost" className="text-foreground/80 hover:text-primary hover:bg-transparent">
+              Sign In
+            </Button>
+          </Link>
+          <Link to="/signup">
+            <Button className="bg-primary hover:bg-primary/90 text-primary-foreground">
+              Get Started
+            </Button>
+          </Link>
         </div>
       </div>
     </nav>
