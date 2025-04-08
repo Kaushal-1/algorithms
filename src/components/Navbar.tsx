@@ -18,9 +18,9 @@ const Navbar = () => {
         </Link>
         
         <div className="hidden md:flex items-center space-x-8">
-          <a href="#courses" className="text-sm text-foreground/80 hover:text-primary transition-colors">
+          <Link to="/courses" className={`text-sm transition-colors ${location.pathname === '/courses' ? 'text-primary' : 'text-foreground/80 hover:text-primary'}`}>
             Courses
-          </a>
+          </Link>
           <Link to="/code-review" className={`text-sm transition-colors ${location.pathname === '/code-review' ? 'text-primary' : 'text-foreground/80 hover:text-primary'}`}>
             Code Review
           </Link>
