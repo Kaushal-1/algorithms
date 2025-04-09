@@ -1,23 +1,50 @@
 
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, Navigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Github, Eye, EyeOff, Mail, Lock } from 'lucide-react';
 import AuthLayout from '@/components/AuthLayout';
+import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from '@/components/ui/use-toast';
 
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  
+  const { signIn, user } = useAuth();
+  const { toast } = useToast();
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Login with:', { email, password, rememberMe });
-    // Here you would typically authenticate with a backend
+    
+    if (!email || !password) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Please fill in all fields"
+      });
+      return;
+    }
+    
+    setIsLoading(true);
+    try {
+      await signIn(email, password);
+    } catch (error) {
+      console.error('Login error:', error);
+    } finally {
+      setIsLoading(false);
+    }
   };
+
+  // Redirect if already logged in
+  if (user) {
+    return <Navigate to="/" replace />;
+  }
 
   return (
     <AuthLayout
@@ -38,6 +65,7 @@ const Login = () => {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
+              disabled={isLoading}
             />
           </div>
         </div>
@@ -52,11 +80,13 @@ const Login = () => {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
+              disabled={isLoading}
             />
             <button
               type="button"
               className="absolute right-3 top-3 text-muted-foreground hover:text-foreground"
               onClick={() => setShowPassword(!showPassword)}
+              disabled={isLoading}
             >
               {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
             </button>
@@ -69,6 +99,7 @@ const Login = () => {
               id="remember-me" 
               checked={rememberMe} 
               onCheckedChange={() => setRememberMe(!rememberMe)} 
+              disabled={isLoading}
             />
             <label htmlFor="remember-me" className="text-sm text-muted-foreground cursor-pointer">
               Remember me
@@ -82,8 +113,9 @@ const Login = () => {
         <Button 
           type="submit" 
           className="w-full bg-algos-highlight hover:bg-algos-highlight/90 text-black font-medium"
+          disabled={isLoading}
         >
-          Log in
+          {isLoading ? "Logging in..." : "Log in"}
         </Button>
 
         <div className="relative">
@@ -101,6 +133,7 @@ const Login = () => {
             variant="outline" 
             className="bg-card hover:bg-muted border-border"
             onClick={() => console.log('Sign in with Google')}
+            disabled={isLoading}
           >
             <svg className="h-4 w-4 mr-2" viewBox="0 0 24 24">
               <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
@@ -115,6 +148,7 @@ const Login = () => {
             variant="outline" 
             className="bg-card hover:bg-muted border-border"
             onClick={() => console.log('Sign in with GitHub')}
+            disabled={isLoading}
           >
             <Github className="h-4 w-4 mr-2" />
             GitHub

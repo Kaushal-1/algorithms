@@ -2,13 +2,22 @@
 import React from 'react';
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Github, User } from "lucide-react";
+import { Github, LogOut, User } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
+import { useAuth } from '@/contexts/AuthContext';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const Navbar = () => {
   const location = useLocation();
   const isAuthPage = location.pathname === '/login' || location.pathname === '/signup';
-  const isLoggedIn = false; // This would come from auth context in a real app
+  const { user, profile, signOut } = useAuth();
   
   return (
     <nav className="py-4 px-4 md:px-8 w-full fixed top-0 bg-algos-dark/90 backdrop-blur-sm z-50 border-b border-border">
@@ -43,13 +52,39 @@ const Navbar = () => {
           >
             <Github size={20} />
           </a>
-          {isLoggedIn ? (
-            <Link to="/user-profile" className="flex items-center space-x-2">
-              <Avatar className="h-8 w-8 border border-primary/30 hover:border-primary transition-colors">
-                <AvatarImage src="https://source.unsplash.com/random/400x400/?portrait" />
-                <AvatarFallback><User size={16} /></AvatarFallback>
-              </Avatar>
-            </Link>
+          {user ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+                  <Avatar className="h-8 w-8 border border-primary/30 hover:border-primary transition-colors">
+                    <AvatarImage src={profile?.avatar_url || "https://source.unsplash.com/random/400x400/?portrait"} />
+                    <AvatarFallback>{profile?.username?.[0]?.toUpperCase() || <User size={16} />}</AvatarFallback>
+                  </Avatar>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-56" align="end" forceMount>
+                <DropdownMenuLabel className="font-normal">
+                  <div className="flex flex-col space-y-1">
+                    <p className="text-sm font-medium leading-none">{profile?.username || user.email}</p>
+                    <p className="text-xs leading-none text-muted-foreground">
+                      {user.email}
+                    </p>
+                  </div>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                  <Link to="/user-profile">Profile</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link to="/settings">Settings</Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => signOut()} className="text-destructive">
+                  <LogOut className="mr-2 h-4 w-4" />
+                  <span>Log out</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           ) : !isAuthPage && (
             <>
               <Link to="/login">
