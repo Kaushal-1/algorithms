@@ -82,9 +82,9 @@ const CourseFilters: React.FC<CourseFiltersProps> = ({
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Any Duration</SelectItem>
-              <SelectItem value="short">Short (<5h)</SelectItem>
+              <SelectItem value="short">Short (&lt;5h)</SelectItem>
               <SelectItem value="medium">Medium (5-15h)</SelectItem>
-              <SelectItem value="long">Long (>15h)</SelectItem>
+              <SelectItem value="long">Long (&gt;15h)</SelectItem>
             </SelectContent>
           </Select>
           
