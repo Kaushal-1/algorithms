@@ -38,9 +38,9 @@ const Navbar = () => {
           <Link to="/code-history" className={`text-sm transition-colors ${location.pathname === '/code-history' ? 'text-primary' : 'text-foreground/80 hover:text-primary'}`}>
             History
           </Link>
-          <a href="#community" className="text-sm text-foreground/80 hover:text-primary transition-colors">
+          <Link to="/community" className={`text-sm transition-colors ${location.pathname === '/community' ? 'text-primary' : 'text-foreground/80 hover:text-primary'}`}>
             Community
-          </a>
+          </Link>
         </div>
         
         <div className="flex items-center space-x-4">

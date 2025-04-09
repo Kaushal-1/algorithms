@@ -15,6 +15,7 @@ import CodeHistory from "./pages/CodeHistory";
 import CourseListing from "./pages/CourseListing";
 import UserProfile from "./pages/UserProfile";
 import Settings from "./pages/Settings";
+import Community from "./pages/Community";
 
 // Initialize QueryClient outside of the component to avoid recreation on renders
 const queryClient = new QueryClient();
@@ -37,6 +38,7 @@ const App = () => {
                 <Route path="/courses" element={<CourseListing />} />
                 <Route path="/user-profile" element={<UserProfile />} />
                 <Route path="/settings" element={<Settings />} />
+                <Route path="/community" element={<Community />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>

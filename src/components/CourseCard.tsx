@@ -23,13 +23,21 @@ interface CourseCardProps {
 }
 
 const CourseCard: React.FC<CourseCardProps> = ({ course }) => {
+  // Generate a fallback image URL based on the course topic if the thumbnail is missing or invalid
+  const fallbackImage = `https://source.unsplash.com/random/800x600/?${course.topics[0]?.toLowerCase() || 'coding'}`;
+  
   return (
     <Card className="bg-card/60 backdrop-blur-md border-border/50 overflow-hidden transition-all duration-300 hover:scale-[1.02] hover:shadow-lg hover:shadow-primary/10 group">
       <div className="relative overflow-hidden h-40">
         <img 
-          src={course.thumbnail} 
+          src={course.thumbnail || fallbackImage} 
           alt={course.title} 
           className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+          onError={(e) => {
+            const target = e.target as HTMLImageElement;
+            target.onerror = null; // Prevent infinite loop
+            target.src = fallbackImage;
+          }}
         />
         <div className="absolute top-3 right-3">
           <Button 
