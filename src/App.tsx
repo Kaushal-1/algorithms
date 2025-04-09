@@ -11,6 +11,8 @@ import SignUp from "./pages/SignUp";
 import CodeReview from "./pages/CodeReview";
 import CodeHistory from "./pages/CodeHistory";
 import CourseListing from "./pages/CourseListing";
+import UserProfile from "./pages/UserProfile";
+import Settings from "./pages/Settings";
 
 const queryClient = new QueryClient();
 
@@ -27,6 +29,8 @@ const App = () => (
           <Route path="/code-review" element={<CodeReview />} />
           <Route path="/code-history" element={<CodeHistory />} />
           <Route path="/courses" element={<CourseListing />} />
+          <Route path="/user-profile" element={<UserProfile />} />
+          <Route path="/settings" element={<Settings />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

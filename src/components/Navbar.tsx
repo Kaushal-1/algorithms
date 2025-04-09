@@ -1,12 +1,14 @@
 
 import React from 'react';
 import { Button } from "@/components/ui/button";
-import { Github } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Github, User } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 
 const Navbar = () => {
   const location = useLocation();
   const isAuthPage = location.pathname === '/login' || location.pathname === '/signup';
+  const isLoggedIn = false; // This would come from auth context in a real app
   
   return (
     <nav className="py-4 px-4 md:px-8 w-full fixed top-0 bg-algos-dark/90 backdrop-blur-sm z-50 border-b border-border">
@@ -41,7 +43,14 @@ const Navbar = () => {
           >
             <Github size={20} />
           </a>
-          {!isAuthPage && (
+          {isLoggedIn ? (
+            <Link to="/user-profile" className="flex items-center space-x-2">
+              <Avatar className="h-8 w-8 border border-primary/30 hover:border-primary transition-colors">
+                <AvatarImage src="https://source.unsplash.com/random/400x400/?portrait" />
+                <AvatarFallback><User size={16} /></AvatarFallback>
+              </Avatar>
+            </Link>
+          ) : !isAuthPage && (
             <>
               <Link to="/login">
                 <Button variant="ghost" className="text-foreground/80 hover:text-primary hover:bg-transparent">
