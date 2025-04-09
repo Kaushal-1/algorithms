@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import Navbar from '@/components/Navbar';
 import { Button } from '@/components/ui/button';
@@ -8,7 +7,7 @@ import ChannelList from '@/components/ChannelList';
 import PostThread, { PostData } from '@/components/PostThread';
 import NewPostForm from '@/components/NewPostForm';
 import MentorsList from '@/components/MentorsList';
-import { useMediaQuery } from '@/hooks/use-mobile';
+import { useIsMobile } from '@/hooks/use-mobile';
 import {
   Sheet,
   SheetContent,
@@ -148,7 +147,7 @@ const Community: React.FC = () => {
   const [selectedChannel, setSelectedChannel] = useState('dsa');
   const [posts, setPosts] = useState<Record<string, PostData[]>>(MOCK_POSTS);
   const [searchTerm, setSearchTerm] = useState('');
-  const isMobile = useMediaQuery("(max-width: 768px)");
+  const isMobile = useIsMobile();
   
   const handleNewPost = (content: string) => {
     const newPost: PostData = {
