@@ -1,11 +1,10 @@
-
 import React, { useState } from 'react';
 import Navbar from '@/components/Navbar';
 import CourseCard, { CourseData } from '@/components/CourseCard';
 import CourseFilters from '@/components/CourseFilters';
 import { Button } from '@/components/ui/button';
+import { BookOpen } from 'lucide-react';
 
-// Mock data for demonstration
 const MOCK_COURSES: CourseData[] = [
   {
     id: '1',
@@ -115,30 +114,24 @@ const CourseListing: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const coursesPerPage = 6;
 
-  // Filter courses based on search term and filters
   const filteredCourses = MOCK_COURSES.filter(course => {
-    // Search term filter
     const matchesSearch = searchTerm === '' || 
       course.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       course.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
       course.topics.some(topic => topic.toLowerCase().includes(searchTerm.toLowerCase()));
     
-    // Topic filter
     const matchesTopic = topicFilter === 'all' || 
       course.topics.some(topic => topic.toLowerCase().includes(topicFilter.toLowerCase()));
     
-    // Difficulty filter
     const matchesDifficulty = difficultyFilter === 'all' || 
       course.difficulty.toLowerCase() === difficultyFilter.toLowerCase();
     
-    // Duration filter
     const matchesDuration = durationFilter === 'all' || 
       course.duration.toLowerCase().includes(durationFilter.toLowerCase());
     
     return matchesSearch && matchesTopic && matchesDifficulty && matchesDuration;
   });
 
-  // Sort filtered courses
   const sortedCourses = [...filteredCourses].sort((a, b) => {
     switch (sortOrder) {
       case 'popular':
@@ -152,7 +145,6 @@ const CourseListing: React.FC = () => {
     }
   });
 
-  // Pagination
   const indexOfLastCourse = currentPage * coursesPerPage;
   const indexOfFirstCourse = indexOfLastCourse - coursesPerPage;
   const currentCourses = sortedCourses.slice(indexOfFirstCourse, indexOfLastCourse);
@@ -167,7 +159,6 @@ const CourseListing: React.FC = () => {
     <div className="min-h-screen bg-algos-dark">
       <Navbar />
       
-      {/* Hero Section */}
       <div className="relative pt-24 px-4 md:px-8">
         <div className="max-w-7xl mx-auto relative z-10 py-16 md:py-20">
           <h1 className="text-3xl md:text-5xl font-bold text-white font-heading text-center mb-4">
@@ -177,17 +168,14 @@ const CourseListing: React.FC = () => {
             Browse curated tech and CS content from trusted sources
           </p>
           
-          {/* Background Gradient Effect */}
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[500px] bg-gradient-to-b from-primary/20 to-transparent rounded-full blur-[120px] opacity-30 z-0"></div>
           <div className="absolute top-40 left-1/4 w-[300px] h-[300px] bg-blue-500/20 rounded-full blur-[80px] opacity-20 z-0"></div>
           <div className="absolute top-20 right-1/4 w-[250px] h-[250px] bg-purple-500/20 rounded-full blur-[80px] opacity-20 z-0"></div>
         </div>
       </div>
       
-      {/* Main Content */}
       <div className="px-4 md:px-8 pb-16">
         <div className="max-w-7xl mx-auto">
-          {/* Filters Section */}
           <CourseFilters 
             searchTerm={searchTerm}
             setSearchTerm={setSearchTerm}
@@ -203,7 +191,6 @@ const CourseListing: React.FC = () => {
             setSortOrder={setSortOrder}
           />
           
-          {/* Courses Grid */}
           {currentCourses.length > 0 ? (
             <>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-8">
@@ -212,7 +199,6 @@ const CourseListing: React.FC = () => {
                 ))}
               </div>
               
-              {/* Pagination */}
               {totalPages > 1 && (
                 <div className="flex justify-center mt-12">
                   <div className="flex space-x-2">
