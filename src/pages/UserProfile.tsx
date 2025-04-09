@@ -1,10 +1,11 @@
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useAuth } from '@/contexts/AuthContext';
 import { 
   BarChart3, 
   Bell,
@@ -24,39 +25,6 @@ import {
 } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 
-// Mock user data
-const userData = {
-  username: "alexcoder",
-  displayName: "Alex Johnson",
-  role: "Student",
-  avatar: "https://source.unsplash.com/random/400x400/?portrait",
-  bio: "Software engineer passionate about algorithms and distributed systems",
-  memberSince: "Jan 2023",
-  email: "alex****@gmail.com",
-  level: "Advanced",
-  enrolledCourses: 12,
-  problemsAttempted: 248,
-  problemsSolved: 187,
-  weeklyStreak: 5,
-  accuracy: 75,
-  favoriteLanguage: "TypeScript",
-  courses: [
-    { id: 1, name: "Advanced Data Structures", progress: 78, lastOpened: "2 days ago", image: "https://source.unsplash.com/random/800x600/?coding" },
-    { id: 2, name: "Machine Learning Fundamentals", progress: 45, lastOpened: "yesterday", image: "https://source.unsplash.com/random/800x600/?ai" },
-    { id: 3, name: "Full-Stack Web Development", progress: 92, lastOpened: "1 week ago", image: "https://source.unsplash.com/random/800x600/?webdev" }
-  ],
-  bookmarked: [
-    { id: 1, title: "Binary Tree Traversal", difficulty: "Medium", type: "Problem" },
-    { id: 2, title: "Database Design & SQL", difficulty: "Intermediate", type: "Course" },
-    { id: 3, title: "Implement Quick Sort", difficulty: "Medium", type: "Problem" }
-  ],
-  achievements: [
-    { id: 1, name: "10-Day Streak", icon: "🔥", description: "Solved problems for 10 consecutive days", date: "2023-12-15" },
-    { id: 2, name: "Algorithm Master", icon: "🏆", description: "Solved 100+ algorithm problems", date: "2023-11-05" },
-    { id: 3, name: "Course Completer", icon: "🎓", description: "Completed 5 courses successfully", date: "2024-01-20" }
-  ]
-};
-
 // Mock activity data for chart
 const activityData = [
   { name: 'Mon', problems: 5 },
@@ -68,8 +36,47 @@ const activityData = [
   { name: 'Sun', problems: 6 },
 ];
 
+// Mock data for courses and achievements (this could be fetched from an API in a real app)
+const coursesData = [
+  { id: 1, name: "Advanced Data Structures", progress: 78, lastOpened: "2 days ago", image: "https://source.unsplash.com/random/800x600/?coding" },
+  { id: 2, name: "Machine Learning Fundamentals", progress: 45, lastOpened: "yesterday", image: "https://source.unsplash.com/random/800x600/?ai" },
+  { id: 3, name: "Full-Stack Web Development", progress: 92, lastOpened: "1 week ago", image: "https://source.unsplash.com/random/800x600/?webdev" }
+];
+
+const bookmarkedData = [
+  { id: 1, title: "Binary Tree Traversal", difficulty: "Medium", type: "Problem" },
+  { id: 2, title: "Database Design & SQL", difficulty: "Intermediate", type: "Course" },
+  { id: 3, title: "Implement Quick Sort", difficulty: "Medium", type: "Problem" }
+];
+
+const achievementsData = [
+  { id: 1, name: "10-Day Streak", icon: "🔥", description: "Solved problems for 10 consecutive days", date: "2023-12-15" },
+  { id: 2, name: "Algorithm Master", icon: "🏆", description: "Solved 100+ algorithm problems", date: "2023-11-05" },
+  { id: 3, name: "Course Completer", icon: "🎓", description: "Completed 5 courses successfully", date: "2024-01-20" }
+];
+
 const UserProfile: React.FC = () => {
   const navigate = useNavigate();
+  const { user, profile, isLoading } = useAuth();
+
+  useEffect(() => {
+    // Redirect to login if not authenticated and finished loading
+    if (user === null && !isLoading) {
+      navigate('/login');
+    }
+  }, [user, navigate, isLoading]);
+
+  // If still loading or no user, show loading state
+  if (isLoading || !user) {
+    return (
+      <div className="min-h-screen bg-algos-dark text-foreground">
+        <Navbar />
+        <div className="pt-24 px-4 md:px-8 pb-16 flex justify-center">
+          <div className="animate-spin text-2xl">⟳</div>
+        </div>
+      </div>
+    );
+  }
   
   return (
     <div className="min-h-screen bg-algos-dark text-foreground">
@@ -88,20 +95,22 @@ const UserProfile: React.FC = () => {
             {/* User Info */}
             <div className="relative px-6 pb-6 -mt-12 flex flex-col md:flex-row items-start md:items-end gap-4 md:gap-8">
               <Avatar className="w-24 h-24 border-4 border-algos-dark ring-2 ring-primary">
-                <AvatarImage src={userData.avatar} alt={userData.displayName} />
-                <AvatarFallback>{userData.displayName.charAt(0)}</AvatarFallback>
+                <AvatarImage src={profile?.avatar_url || "https://source.unsplash.com/random/400x400/?portrait"} alt={profile?.username || "User"} />
+                <AvatarFallback>{profile?.username?.charAt(0).toUpperCase() || user.email?.charAt(0).toUpperCase() || 'U'}</AvatarFallback>
               </Avatar>
               
               <div className="flex flex-col md:flex-row flex-1 gap-4 items-start md:items-end justify-between">
                 <div>
                   <div className="flex items-center gap-3 mb-2">
-                    <h1 className="text-2xl md:text-3xl font-bold font-heading">{userData.displayName}</h1>
+                    <h1 className="text-2xl md:text-3xl font-bold font-heading">
+                      {user.user_metadata?.displayName || profile?.username || "User"}
+                    </h1>
                     <span className="px-3 py-1 bg-primary/20 text-primary text-xs rounded-full">
-                      {userData.role}
+                      Student
                     </span>
                   </div>
-                  <p className="text-muted-foreground mb-1">@{userData.username}</p>
-                  <p className="text-sm max-w-md">{userData.bio}</p>
+                  <p className="text-muted-foreground mb-1">@{profile?.username || "username"}</p>
+                  <p className="text-sm max-w-md">{profile?.bio || "No bio yet. Add one in settings!"}</p>
                 </div>
                 
                 <Button 
@@ -130,26 +139,26 @@ const UserProfile: React.FC = () => {
                   <div className="flex justify-between py-2 border-b border-border/50">
                     <span className="text-muted-foreground">Member Since</span>
                     <span className="font-medium flex items-center">
-                      <CalendarDays size={14} className="mr-1 text-accent" /> {userData.memberSince}
+                      <CalendarDays size={14} className="mr-1 text-accent" /> {new Date(user.created_at || Date.now()).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
                     </span>
                   </div>
                   <div className="flex justify-between py-2 border-b border-border/50">
                     <span className="text-muted-foreground">Email</span>
-                    <span className="font-medium">{userData.email}</span>
+                    <span className="font-medium">{user.email}</span>
                   </div>
                   <div className="flex justify-between py-2 border-b border-border/50">
                     <span className="text-muted-foreground">Level</span>
                     <span className="font-medium flex items-center">
-                      <Trophy size={14} className="mr-1 text-amber-500" /> {userData.level}
+                      <Trophy size={14} className="mr-1 text-amber-500" /> Advanced
                     </span>
                   </div>
                   <div className="flex justify-between py-2 border-b border-border/50">
                     <span className="text-muted-foreground">Enrolled Courses</span>
-                    <span className="font-medium">{userData.enrolledCourses}</span>
+                    <span className="font-medium">{coursesData.length}</span>
                   </div>
                   <div className="flex justify-between py-2">
                     <span className="text-muted-foreground">Problems Attempted</span>
-                    <span className="font-medium">{userData.problemsAttempted}</span>
+                    <span className="font-medium">248</span>
                   </div>
                 </CardContent>
               </Card>
@@ -201,23 +210,23 @@ const UserProfile: React.FC = () => {
                     <div className="bg-muted/30 p-4 rounded-lg">
                       <p className="text-muted-foreground text-sm mb-1">Problems Solved</p>
                       <div className="flex justify-between items-end">
-                        <span className="text-2xl font-bold font-mono">{userData.problemsSolved}</span>
+                        <span className="text-2xl font-bold font-mono">187</span>
                         <span className="text-xs px-2 py-1 bg-primary/20 text-primary rounded-full">
-                          {userData.weeklyStreak} day streak
+                          5 day streak
                         </span>
                       </div>
                     </div>
                     <div className="bg-muted/30 p-4 rounded-lg">
                       <p className="text-muted-foreground text-sm mb-1">Success Rate</p>
                       <div className="flex justify-between items-end">
-                        <span className="text-2xl font-bold font-mono">{userData.accuracy}%</span>
+                        <span className="text-2xl font-bold font-mono">75%</span>
                         <PieChart size={20} className="text-accent" />
                       </div>
                     </div>
                     <div className="bg-muted/30 p-4 rounded-lg">
                       <p className="text-muted-foreground text-sm mb-1">Favorite Language</p>
                       <div className="flex justify-between items-end">
-                        <span className="text-2xl font-bold font-mono">{userData.favoriteLanguage}</span>
+                        <span className="text-2xl font-bold font-mono">TypeScript</span>
                         <Code size={20} className="text-secondary" />
                       </div>
                     </div>
@@ -270,7 +279,7 @@ const UserProfile: React.FC = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    {userData.courses.map(course => (
+                    {coursesData.map(course => (
                       <div key={course.id} className="flex gap-4 items-center bg-muted/30 p-3 rounded-lg hover:bg-muted/40 transition-colors">
                         <img 
                           src={course.image} 
@@ -322,7 +331,7 @@ const UserProfile: React.FC = () => {
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-3">
-                      {userData.bookmarked.map(item => (
+                      {bookmarkedData.map(item => (
                         <div key={item.id} className="flex justify-between p-3 bg-muted/30 rounded-lg hover:bg-muted/40 transition-colors cursor-pointer">
                           <div>
                             <h4 className="font-medium text-sm">{item.title}</h4>
@@ -351,7 +360,7 @@ const UserProfile: React.FC = () => {
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-3">
-                      {userData.achievements.map(achievement => (
+                      {achievementsData.map(achievement => (
                         <div key={achievement.id} className="p-3 bg-muted/30 rounded-lg">
                           <div className="flex gap-3 items-center">
                             <div className="w-10 h-10 flex items-center justify-center bg-primary/20 rounded-full text-xl">

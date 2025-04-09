@@ -13,6 +13,8 @@ import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 import { 
   AlertTriangle, 
   ArrowLeft, 
@@ -49,6 +51,7 @@ const Settings: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();
+  const { user, profile, signOut } = useAuth();
   
   // Get section from URL query params or default to profile
   const queryParams = new URLSearchParams(location.search);
@@ -56,13 +59,14 @@ const Settings: React.FC = () => {
   
   const [activeSection, setActiveSection] = useState(defaultSection);
   const [isLoading, setIsLoading] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   
   // Form states
   const [profileForm, setProfileForm] = useState({
-    username: 'alexcoder',
-    displayName: 'Alex Johnson',
-    email: 'alex.johnson@example.com',
-    bio: 'Software engineer passionate about algorithms and distributed systems'
+    username: '',
+    displayName: '',
+    email: '',
+    bio: ''
   });
   
   const [securityForm, setSecurityForm] = useState({
@@ -88,30 +92,87 @@ const Settings: React.FC = () => {
     publicProfile: true,
     showCodingActivity: true
   });
+
+  // Load user data
+  useEffect(() => {
+    if (user && profile) {
+      setProfileForm({
+        username: profile.username || '',
+        displayName: user.user_metadata?.displayName || '',
+        email: user.email || '',
+        bio: profile.bio || ''
+      });
+    }
+  }, [user, profile]);
   
   // Update URL when active section changes
   useEffect(() => {
     const newUrl = `${location.pathname}?section=${activeSection}`;
     window.history.replaceState({}, '', newUrl);
-  }, [activeSection]);
+  }, [activeSection, location.pathname]);
   
   // Handle form submissions
-  const handleProfileSubmit = (e: React.FormEvent) => {
+  const handleProfileSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!user) {
+      toast({
+        variant: "destructive",
+        title: "Not authenticated",
+        description: "You must be logged in to update your profile.",
+      });
+      return;
+    }
+    
     setIsLoading(true);
     
-    // Simulate API call
-    setTimeout(() => {
-      setIsLoading(false);
+    try {
+      // Update profile in Supabase
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .update({
+          username: profileForm.username,
+          bio: profileForm.bio,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', user.id);
+      
+      if (profileError) throw profileError;
+      
+      // Update user metadata
+      const { error: userError } = await supabase.auth.updateUser({
+        data: { displayName: profileForm.displayName }
+      });
+      
+      if (userError) throw userError;
+      
       toast({
         title: "Profile Updated",
         description: "Your profile information has been successfully updated.",
       });
-    }, 800);
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      toast({
+        variant: "destructive",
+        title: "Update Failed",
+        description: "There was a problem updating your profile.",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
   
-  const handleSecuritySubmit = (e: React.FormEvent) => {
+  const handleSecuritySubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!user) {
+      toast({
+        variant: "destructive",
+        title: "Not authenticated",
+        description: "You must be logged in to change your password.",
+      });
+      return;
+    }
     
     if (securityForm.newPassword !== securityForm.confirmPassword) {
       toast({
@@ -124,18 +185,92 @@ const Settings: React.FC = () => {
     
     setIsLoading(true);
     
-    // Simulate API call
-    setTimeout(() => {
-      setIsLoading(false);
+    try {
+      const { error } = await supabase.auth.updateUser({
+        password: securityForm.newPassword
+      });
+      
+      if (error) throw error;
+      
       setSecurityForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
+      
       toast({
         title: "Password Updated",
         description: "Your password has been successfully changed.",
       });
-    }, 800);
+    } catch (error: any) {
+      console.error('Error changing password:', error);
+      toast({
+        variant: "destructive",
+        title: "Password Change Failed",
+        description: error.message || "There was a problem changing your password.",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
   
-  const handleSettingToggle = (setting: string, section: string, value: boolean) => {
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user) return;
+    
+    // Validate file size (max 2MB)
+    if (file.size > 2 * 1024 * 1024) {
+      toast({
+        variant: "destructive",
+        title: "File too large",
+        description: "Image size should not exceed 2MB.",
+      });
+      return;
+    }
+    
+    setIsUploading(true);
+    
+    try {
+      // Upload file to Supabase Storage
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${user.id}-${Date.now()}.${fileExt}`;
+      const filePath = `avatars/${fileName}`;
+      
+      const { error: uploadError, data } = await supabase.storage
+        .from('avatars')
+        .upload(filePath, file, { upsert: true });
+      
+      if (uploadError) throw uploadError;
+      
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(filePath);
+      
+      // Update profile with new avatar URL
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ avatar_url: publicUrl })
+        .eq('id', user.id);
+      
+      if (updateError) throw updateError;
+      
+      toast({
+        title: "Avatar Updated",
+        description: "Your profile picture has been updated successfully.",
+      });
+      
+      // Force reload to see new avatar
+      window.location.reload();
+    } catch (error) {
+      console.error('Error uploading avatar:', error);
+      toast({
+        variant: "destructive",
+        title: "Upload Failed",
+        description: "There was a problem uploading your avatar.",
+      });
+    } finally {
+      setIsUploading(false);
+    }
+  };
+  
+  const handleSettingToggle = async (setting: string, section: string, value: boolean) => {
     // Update the appropriate settings state based on section
     if (section === 'notifications') {
       setNotificationSettings(prev => ({ ...prev, [setting]: value }));
@@ -145,7 +280,8 @@ const Settings: React.FC = () => {
       setThemeSettings(prev => ({ ...prev, [setting]: value }));
     }
     
-    // Show success toast
+    // In a production app, you would save these settings to the database
+    // This is a simplified example that just shows the toast
     toast({
       title: "Setting Updated",
       description: `${setting.charAt(0).toUpperCase() + setting.slice(1).replace(/([A-Z])/g, ' $1')} has been ${value ? 'enabled' : 'disabled'}.`,
@@ -154,6 +290,7 @@ const Settings: React.FC = () => {
   
   const handleThemeChange = (value: string) => {
     setThemeSettings(prev => ({ ...prev, theme: value }));
+    // In a production app, save to database
     toast({
       title: "Theme Updated",
       description: `Theme has been changed to ${value}.`,
@@ -162,27 +299,51 @@ const Settings: React.FC = () => {
   
   const handleFontSizeChange = (value: string) => {
     setThemeSettings(prev => ({ ...prev, fontSize: value }));
+    // In a production app, save to database
     toast({
       title: "Font Size Updated",
       description: `Font size has been changed to ${value}.`,
     });
   };
   
-  const handleDeleteAccount = () => {
-    // Simulate API call
+  const handleDeleteAccount = async () => {
+    if (!user) return;
+    
     setIsLoading(true);
     
-    setTimeout(() => {
-      setIsLoading(false);
+    try {
+      // Delete user account using Supabase
+      const { error } = await supabase.auth.admin.deleteUser(user.id);
+      
+      if (error) throw error;
+      
+      // Sign out the user
+      await signOut();
+      
       toast({
         title: "Account Deleted",
         description: "Your account has been successfully deleted. Redirecting to homepage...",
       });
       
-      // Redirect to home page after a delay
-      setTimeout(() => navigate('/'), 1500);
-    }, 1000);
+      // Redirect to home page
+      navigate('/');
+    } catch (error: any) {
+      console.error('Error deleting account:', error);
+      toast({
+        variant: "destructive",
+        title: "Delete Failed",
+        description: error.message || "There was a problem deleting your account.",
+      });
+      setIsLoading(false);
+    }
   };
+  
+  // Redirect if not logged in
+  useEffect(() => {
+    if (user === null && !isLoading) {
+      navigate('/login');
+    }
+  }, [user, navigate, isLoading]);
   
   return (
     <div className="min-h-screen bg-algos-dark text-foreground">
@@ -275,9 +436,12 @@ const Settings: React.FC = () => {
                               id="email"
                               type="email"
                               value={profileForm.email}
-                              onChange={(e) => setProfileForm(prev => ({ ...prev, email: e.target.value }))}
-                              className="bg-muted/30"
+                              readOnly
+                              className="bg-muted/30 opacity-70"
                             />
+                            <p className="text-xs text-muted-foreground">
+                              Email cannot be changed. Contact support for help.
+                            </p>
                           </div>
                           
                           <div className="space-y-2">
@@ -294,12 +458,22 @@ const Settings: React.FC = () => {
                         <div className="flex flex-col items-center space-y-4">
                           <div className="text-center">
                             <Avatar className="w-32 h-32 mb-4 mx-auto">
-                              <AvatarImage src="https://source.unsplash.com/random/400x400/?portrait" />
-                              <AvatarFallback>AJ</AvatarFallback>
+                              <AvatarImage src={profile?.avatar_url || "https://source.unsplash.com/random/400x400/?portrait"} />
+                              <AvatarFallback>{user?.email?.charAt(0).toUpperCase() || 'U'}</AvatarFallback>
                             </Avatar>
-                            <Button variant="outline" size="sm" className="mb-2">
-                              <Upload size={14} className="mr-2" /> Upload Image
-                            </Button>
+                            <label htmlFor="avatar-upload">
+                              <Button variant="outline" size="sm" className="mb-2 cursor-pointer" type="button">
+                                <Upload size={14} className="mr-2" /> Upload Image
+                              </Button>
+                              <input
+                                id="avatar-upload"
+                                type="file"
+                                className="hidden"
+                                accept="image/*"
+                                onChange={handleAvatarUpload}
+                                disabled={isUploading}
+                              />
+                            </label>
                             <p className="text-xs text-muted-foreground">
                               PNG, JPG or GIF, max 2MB
                             </p>
@@ -307,8 +481,8 @@ const Settings: React.FC = () => {
                         </div>
                       </div>
                       
-                      <Button type="submit" disabled={isLoading} className="mt-6">
-                        {isLoading && <div className="mr-2 animate-spin">⟳</div>}
+                      <Button type="submit" disabled={isLoading || isUploading} className="mt-6">
+                        {isLoading ? <div className="mr-2 animate-spin">⟳</div> : null}
                         Save Profile Changes
                       </Button>
                     </form>
@@ -376,7 +550,7 @@ const Settings: React.FC = () => {
                       </div>
                       
                       <Button type="submit" disabled={isLoading}>
-                        {isLoading && <div className="mr-2 animate-spin">⟳</div>}
+                        {isLoading ? <div className="mr-2 animate-spin">⟳</div> : null}
                         Update Password
                       </Button>
                     </form>
