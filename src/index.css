@@ -76,8 +76,55 @@
     animation: fadeIn 0.8s ease-out forwards;
   }
 
+  /* Markdown content styling */
+  .markdown-content h1 {
+    @apply text-2xl font-bold mt-4 mb-2;
+  }
+  
+  .markdown-content h2 {
+    @apply text-xl font-bold mt-3 mb-2;
+  }
+  
+  .markdown-content h3 {
+    @apply text-lg font-bold mt-3 mb-1;
+  }
+  
+  .markdown-content p {
+    @apply mb-2;
+  }
+  
+  .markdown-content ul {
+    @apply list-disc ml-5 mb-2;
+  }
+  
+  .markdown-content ol {
+    @apply list-decimal ml-5 mb-2;
+  }
+  
+  .markdown-content li {
+    @apply mb-1;
+  }
+  
+  .markdown-content pre {
+    @apply bg-algos-darker p-3 rounded-md my-2 overflow-x-auto;
+  }
+  
+  .markdown-content code {
+    @apply font-mono text-accent text-sm;
+  }
+
   @keyframes fadeIn {
     from { opacity: 0; transform: translateY(20px); }
     to { opacity: 1; transform: translateY(0); }
+  }
+  
+  @keyframes typing {
+    from { width: 0 }
+    to { width: 100% }
+  }
+  
+  @keyframes blink {
+    from, to { border-color: transparent }
+    50% { border-color: var(--accent); }
   }
 }
