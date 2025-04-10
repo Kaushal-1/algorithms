@@ -154,7 +154,7 @@ const CodeReview: React.FC = () => {
           <div className="px-4 py-6 max-w-7xl mx-auto w-full">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-semibold">AI Code Review</h2>
-              <Tabs defaultValue="diff" value={activeTab} onValueChange={setActiveTab} className="w-auto">
+              <Tabs value={activeTab} onValueChange={setActiveTab} className="w-auto">
                 <TabsList className="bg-muted">
                   <TabsTrigger value="diff" className={cn("flex items-center gap-1", activeTab === "diff" && "text-primary")}>
                     <Code size={16} /> Code Diff
@@ -166,22 +166,22 @@ const CodeReview: React.FC = () => {
                     <AlertTriangle size={16} /> Errors
                   </TabsTrigger>
                 </TabsList>
+              
+                {feedback && (
+                  <div className="animate-fade-in">
+                    <TabsContent value="diff">
+                      <DsaReviewPanel type="diff" data={feedback.codeDiff} />
+                    </TabsContent>
+                    <TabsContent value="optimization">
+                      <DsaReviewPanel type="optimization" data={feedback.optimizations} />
+                    </TabsContent>
+                    <TabsContent value="errors">
+                      <DsaReviewPanel type="errors" data={feedback.errors} />
+                    </TabsContent>
+                  </div>
+                )}
               </Tabs>
             </div>
-            
-            {feedback && (
-              <div className="animate-fade-in">
-                <TabsContent value="diff" className="mt-0">
-                  <DsaReviewPanel type="diff" data={feedback.codeDiff} />
-                </TabsContent>
-                <TabsContent value="optimization" className="mt-0">
-                  <DsaReviewPanel type="optimization" data={feedback.optimizations} />
-                </TabsContent>
-                <TabsContent value="errors" className="mt-0">
-                  <DsaReviewPanel type="errors" data={feedback.errors} />
-                </TabsContent>
-              </div>
-            )}
           </div>
         </DrawerContent>
       </Drawer>
