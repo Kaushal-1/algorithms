@@ -3,9 +3,14 @@ import React, { useState } from 'react';
 import Navbar from '@/components/Navbar';
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/components/ui/resizable';
 import CodeEditor from '@/components/CodeEditor';
-import AiFeedback from '@/components/AiFeedback';
 import ProblemDescription from '@/components/ProblemDescription';
 import { toast } from 'sonner';
+import { Button } from '@/components/ui/button';
+import { Drawer, DrawerContent, DrawerTrigger } from '@/components/ui/drawer';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Code, LineChart, AlertTriangle } from 'lucide-react';
+import DsaReviewPanel from '@/components/DsaReviewPanel';
+import { cn } from '@/lib/utils';
 
 // Sample problem for demonstration
 const sampleProblem = {
@@ -37,46 +42,74 @@ Constraints:
   tags: ['Array', 'Hash Table']
 };
 
-// Sample AI feedback for demonstration
-const sampleFeedback = [
-  {
-    type: 'suggestion' as const,
-    message: 'Consider using a hash map to reduce time complexity from O(n²) to O(n).',
-    line: 5
-  },
-  {
-    type: 'error' as const,
-    message: 'This loop may cause an index out of bounds error for empty arrays.',
-    line: 3,
-    code: 'for (let i = 0; i < nums.length; i++) {\n  // Add a check for array length'
-  },
-  {
-    type: 'optimization' as const,
-    message: 'The current solution has a time complexity of O(n²). You can improve this.',
-    code: 'const twoSum = (nums, target) => {\n  const map = new Map();\n  for (let i = 0; i < nums.length; i++) {\n    const complement = target - nums[i];\n    if (map.has(complement)) {\n      return [map.get(complement), i];\n    }\n    map.set(nums[i], i);\n  }\n  return [];\n};'
-  },
-  {
-    type: 'style' as const,
-    message: 'Use descriptive variable names to improve code readability.',
-    line: 2
-  }
-];
+// Sample feedback for demonstration
+const sampleFeedback = {
+  codeDiff: [
+    {
+      type: 'unchanged' as const,
+      code: 'function twoSum(nums, target) {',
+    },
+    {
+      type: 'removed' as const,
+      code: '  for (let i = 0; i < nums.length; i++) {\n    for (let j = i + 1; j < nums.length; j++) {\n      if (nums[i] + nums[j] === target) {\n        return [i, j];\n      }\n    }\n  }',
+    },
+    {
+      type: 'added' as const,
+      code: '  const map = new Map();\n  for (let i = 0; i < nums.length; i++) {\n    const complement = target - nums[i];\n    if (map.has(complement)) {\n      return [map.get(complement), i];\n    }\n    map.set(nums[i], i);\n  }',
+    },
+    {
+      type: 'unchanged' as const,
+      code: '  return [];\n}',
+    },
+  ],
+  optimizations: [
+    {
+      title: 'Time Complexity Improvement',
+      description: 'Original solution has O(n²) time complexity. The optimized version uses a hash map to achieve O(n) time complexity.',
+      code: 'const map = new Map();\nfor (let i = 0; i < nums.length; i++) {\n  const complement = target - nums[i];\n  if (map.has(complement)) {\n    return [map.get(complement), i];\n  }\n  map.set(nums[i], i);\n}',
+    },
+    {
+      title: 'Space Complexity',
+      description: 'The optimized solution uses additional O(n) space for the hash map, which is a reasonable trade-off for the time complexity improvement.',
+    }
+  ],
+  errors: [
+    {
+      title: 'Potential Edge Cases',
+      description: 'The solution should verify that nums is not empty before processing.',
+      code: 'if (!nums || nums.length < 2) {\n  return [];\n}',
+    },
+    {
+      title: 'Missing Type Annotations',
+      description: 'Consider adding TypeScript type annotations for better code quality and IDE support.',
+      code: 'function twoSum(nums: number[], target: number): number[] {',
+    }
+  ]
+};
 
 const CodeReview: React.FC = () => {
-  const [feedback, setFeedback] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [code, setCode] = useState<string>('// Write your solution here\n\nfunction twoSum(nums, target) {\n  // Implement the Two Sum solution\n}\n');
+  const [language, setLanguage] = useState<string>('javascript');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [reviewOpen, setReviewOpen] = useState(false);
+  const [feedback, setFeedback] = useState<any>(null);
+  const [activeTab, setActiveTab] = useState('diff');
 
-  const handleRunCode = (code: string, language: string) => {
-    setIsLoading(true);
+  const handleRunCode = (submittedCode: string, lang: string) => {
+    setCode(submittedCode);
+    setLanguage(lang);
+  };
+
+  const handleSubmit = () => {
+    setIsSubmitting(true);
     
-    // Simulate AI processing time
+    // Simulate API call
     setTimeout(() => {
       setFeedback(sampleFeedback);
-      setIsLoading(false);
-      toast.success('Code analysis complete!');
+      setReviewOpen(true);
+      setIsSubmitting(false);
+      toast.success('Solution submitted for review!');
     }, 1500);
-    
-    console.log(`Running ${language} code:`, code);
   };
 
   return (
@@ -84,30 +117,74 @@ const CodeReview: React.FC = () => {
       <Navbar />
       
       <main className="flex-grow pt-20 px-4 pb-8 max-w-[1800px] mx-auto w-full">
-        <div className="mb-4">
-          <ProblemDescription 
-            title={sampleProblem.title}
-            description={sampleProblem.description}
-            difficulty={sampleProblem.difficulty}
-            tags={sampleProblem.tags}
-          />
+        <div className="mb-4 flex justify-between items-center">
+          <h1 className="text-2xl font-bold text-foreground">DSA Trainer</h1>
+          <Button 
+            onClick={handleSubmit} 
+            className="bg-algos-green hover:bg-algos-green/90 text-black font-medium" 
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? 'Submitting...' : 'Submit Solution'}
+          </Button>
         </div>
         
         <ResizablePanelGroup
           direction="horizontal"
           className="min-h-[calc(100vh-220px)]"
         >
-          <ResizablePanel defaultSize={50} minSize={30}>
-            <CodeEditor onRunCode={handleRunCode} />
+          <ResizablePanel defaultSize={40} minSize={30}>
+            <ProblemDescription 
+              title={sampleProblem.title}
+              description={sampleProblem.description}
+              difficulty={sampleProblem.difficulty}
+              tags={sampleProblem.tags}
+            />
           </ResizablePanel>
           
           <ResizableHandle withHandle />
           
-          <ResizablePanel defaultSize={50} minSize={30}>
-            <AiFeedback feedback={feedback} isLoading={isLoading} />
+          <ResizablePanel defaultSize={60} minSize={40}>
+            <CodeEditor onRunCode={handleRunCode} initialCode={code} initialLanguage={language} />
           </ResizablePanel>
         </ResizablePanelGroup>
       </main>
+
+      <Drawer open={reviewOpen} onOpenChange={setReviewOpen}>
+        <DrawerContent className="max-h-[80vh]">
+          <div className="px-4 py-6 max-w-7xl mx-auto w-full">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-semibold">AI Code Review</h2>
+              <Tabs defaultValue="diff" value={activeTab} onValueChange={setActiveTab} className="w-auto">
+                <TabsList className="bg-muted">
+                  <TabsTrigger value="diff" className={cn("flex items-center gap-1", activeTab === "diff" && "text-primary")}>
+                    <Code size={16} /> Code Diff
+                  </TabsTrigger>
+                  <TabsTrigger value="optimization" className={cn("flex items-center gap-1", activeTab === "optimization" && "text-primary")}>
+                    <LineChart size={16} /> Optimization
+                  </TabsTrigger>
+                  <TabsTrigger value="errors" className={cn("flex items-center gap-1", activeTab === "errors" && "text-primary")}>
+                    <AlertTriangle size={16} /> Errors
+                  </TabsTrigger>
+                </TabsList>
+              </Tabs>
+            </div>
+            
+            {feedback && (
+              <div className="animate-fade-in">
+                <TabsContent value="diff" className="mt-0">
+                  <DsaReviewPanel type="diff" data={feedback.codeDiff} />
+                </TabsContent>
+                <TabsContent value="optimization" className="mt-0">
+                  <DsaReviewPanel type="optimization" data={feedback.optimizations} />
+                </TabsContent>
+                <TabsContent value="errors" className="mt-0">
+                  <DsaReviewPanel type="errors" data={feedback.errors} />
+                </TabsContent>
+              </div>
+            )}
+          </div>
+        </DrawerContent>
+      </Drawer>
     </div>
   );
 };

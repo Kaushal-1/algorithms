@@ -8,11 +8,17 @@ import { Textarea } from '@/components/ui/textarea';
 
 interface CodeEditorProps {
   onRunCode: (code: string, language: string) => void;
+  initialCode?: string;
+  initialLanguage?: string;
 }
 
-const CodeEditor: React.FC<CodeEditorProps> = ({ onRunCode }) => {
-  const [code, setCode] = useState<string>('// Write your code here\n\n');
-  const [language, setLanguage] = useState<string>('javascript');
+const CodeEditor: React.FC<CodeEditorProps> = ({ 
+  onRunCode, 
+  initialCode = '// Write your code here\n\n', 
+  initialLanguage = 'javascript' 
+}) => {
+  const [code, setCode] = useState<string>(initialCode);
+  const [language, setLanguage] = useState<string>(initialLanguage);
 
   const handleRunCode = () => {
     onRunCode(code, language);
@@ -22,13 +28,14 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ onRunCode }) => {
     <Card className="flex flex-col h-full border-border bg-card/50 backdrop-blur-sm">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-lg font-medium text-foreground">Code Editor</CardTitle>
+          <CardTitle className="text-lg font-medium text-foreground">Solution Editor</CardTitle>
           <Select value={language} onValueChange={setLanguage}>
             <SelectTrigger className="w-[180px] bg-muted border-border">
               <SelectValue placeholder="Select language" />
             </SelectTrigger>
             <SelectContent className="bg-card border-border">
               <SelectItem value="javascript">JavaScript</SelectItem>
+              <SelectItem value="typescript">TypeScript</SelectItem>
               <SelectItem value="python">Python</SelectItem>
               <SelectItem value="java">Java</SelectItem>
               <SelectItem value="cpp">C++</SelectItem>
@@ -49,7 +56,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ onRunCode }) => {
           <Save className="mr-2 h-4 w-4" />
           Save
         </Button>
-        <Button className="bg-algos-green hover:bg-algos-green/90 text-black font-medium" onClick={handleRunCode}>
+        <Button className="bg-primary hover:bg-primary/90 text-primary-foreground font-medium" onClick={handleRunCode}>
           <Play className="mr-2 h-4 w-4" />
           Run Code
         </Button>
