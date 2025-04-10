@@ -1,30 +1,25 @@
-
 import React, { useEffect, useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { ArrowRight, MessageSquare, CheckCircle2 } from "lucide-react";
 import { cn } from "@/lib/utils";
-
 const HeroSection = () => {
   const [typingComplete, setTypingComplete] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
-  
   useEffect(() => {
     // Simulate the typing effect completion
     const timer = setTimeout(() => {
       setTypingComplete(true);
     }, 3500);
-    
+
     // Cycle through the AI feedback steps
     const stepInterval = setInterval(() => {
-      setCurrentStep((prev) => (prev + 1) % 3);
+      setCurrentStep(prev => (prev + 1) % 3);
     }, 3000);
-    
     return () => {
       clearTimeout(timer);
       clearInterval(stepInterval);
     };
   }, []);
-  
   const codeExample = `function reverseString(str) {
   // Convert string to array
   let arr = str.split('');
@@ -35,33 +30,28 @@ const HeroSection = () => {
   // Join array back to string
   return arr.join('');
 }`;
-
-  const aiFeedback = [
-    { 
-      id: 0, 
-      text: "Your function works, but could be more concise. Consider chaining methods:",
-      code: "return str.split('').reverse().join('');"
-    },
-    { 
-      id: 1, 
-      text: "For better performance with longer strings, use a loop instead:",
-      code: "let result = '';\nfor (let i = str.length - 1; i >= 0; i--) {\n  result += str[i];\n}\nreturn result;"
-    },
-    { 
-      id: 2, 
-      text: "For Unicode characters, consider using spread operator:",
-      code: "return [...str].reverse().join('');"
-    }
-  ];
-
-  return (
-    <section className="pt-32 pb-20 px-4 md:px-8 overflow-hidden relative">
+  const aiFeedback = [{
+    id: 0,
+    text: "Your function works, but could be more concise. Consider chaining methods:",
+    code: "return str.split('').reverse().join('');"
+  }, {
+    id: 1,
+    text: "For better performance with longer strings, use a loop instead:",
+    code: "let result = '';\nfor (let i = str.length - 1; i >= 0; i--) {\n  result += str[i];\n}\nreturn result;"
+  }, {
+    id: 2,
+    text: "For Unicode characters, consider using spread operator:",
+    code: "return [...str].reverse().join('');"
+  }];
+  return <section className="pt-32 pb-20 px-4 md:px-8 overflow-hidden relative">
       <div className="max-w-7xl mx-auto">
         <div className="flex flex-col lg:flex-row items-center justify-between gap-12">
-          <div className="w-full lg:w-1/2 animate-fade-in" style={{ animationDelay: '0.2s' }}>
+          <div className="w-full lg:w-1/2 animate-fade-in" style={{
+          animationDelay: '0.2s'
+        }}>
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold font-heading mb-6 leading-tight">
               Code with Confidence.
-              <span className="text-primary block"> Get Instant AI Feedback.</span>
+              <span className="text-primary block">PERSONALISED AI GURUKUL</span>
             </h1>
             <p className="text-xl text-foreground/80 mb-8 max-w-xl">
               ALGORITHMS helps you write better code, spot errors faster, and improve over time — all with the power of AI.
@@ -77,7 +67,9 @@ const HeroSection = () => {
             </div>
           </div>
           
-          <div className="w-full lg:w-1/2 animate-fade-in" style={{ animationDelay: '0.4s' }}>
+          <div className="w-full lg:w-1/2 animate-fade-in" style={{
+          animationDelay: '0.4s'
+        }}>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-algos-darker p-4 rounded-lg shadow-xl border border-border">
               {/* Code Editor Panel */}
               <div className="code-block">
@@ -104,10 +96,7 @@ const HeroSection = () => {
                 </div>
                 
                 {/* AI Comment */}
-                <div className={cn(
-                  "transition-opacity duration-500",
-                  typingComplete ? "opacity-100" : "opacity-0"
-                )}>
+                <div className={cn("transition-opacity duration-500", typingComplete ? "opacity-100" : "opacity-0")}>
                   <div className="mb-3 p-3 bg-muted border border-border rounded-lg">
                     <p className="text-sm text-foreground/90 mb-2">
                       {aiFeedback[currentStep].text}
@@ -123,10 +112,7 @@ const HeroSection = () => {
                 </div>
                 
                 {/* Typing effect before feedback appears */}
-                <div className={cn(
-                  "absolute inset-0 flex items-center justify-center bg-muted rounded-lg transition-opacity duration-300",
-                  typingComplete ? "opacity-0 pointer-events-none" : "opacity-100"
-                )}>
+                <div className={cn("absolute inset-0 flex items-center justify-center bg-muted rounded-lg transition-opacity duration-300", typingComplete ? "opacity-0 pointer-events-none" : "opacity-100")}>
                   <div className="typing-container px-6">
                     <p className="typing-text text-sm text-foreground/90">
                       Analyzing your code...
@@ -142,8 +128,6 @@ const HeroSection = () => {
       {/* Background gradients */}
       <div className="absolute top-1/4 -left-96 w-[500px] h-[500px] bg-primary/20 rounded-full filter blur-3xl opacity-20"></div>
       <div className="absolute bottom-0 -right-96 w-[500px] h-[500px] bg-secondary/20 rounded-full filter blur-3xl opacity-20"></div>
-    </section>
-  );
+    </section>;
 };
-
 export default HeroSection;
