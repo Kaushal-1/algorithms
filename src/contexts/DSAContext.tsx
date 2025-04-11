@@ -40,6 +40,9 @@ interface DSAContextType {
 
 const DSAContext = createContext<DSAContextType | undefined>(undefined);
 
+// Hardcoded Groq API key
+const GROQ_API_KEY = "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";
+
 export const DSAProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [currentProblem, setCurrentProblem] = useState<DSAProblem | null>(null);
   const [userSubmission, setUserSubmission] = useState<DSASubmission | null>(null);
@@ -59,7 +62,7 @@ export const DSAProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
         method: 'POST',
         headers: {
-          'Authorization': 'Bearer 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',
+          'Authorization': `Bearer ${GROQ_API_KEY}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
@@ -130,7 +133,7 @@ export const DSAProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
         method: 'POST',
         headers: {
-          'Authorization': 'Bearer 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',
+          'Authorization': `Bearer ${GROQ_API_KEY}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
@@ -191,7 +194,7 @@ export const DSAProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
         method: 'POST',
         headers: {
-          'Authorization': 'Bearer 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',
+          'Authorization': `Bearer ${GROQ_API_KEY}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({

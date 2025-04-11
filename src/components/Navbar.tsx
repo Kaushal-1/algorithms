@@ -30,10 +30,10 @@ const Navbar = () => {
         
         <div className="hidden md:flex items-center space-x-8">
           <Link to="/courses" className={`text-sm transition-colors ${location.pathname === '/courses' ? 'text-primary' : 'text-foreground/80 hover:text-primary'}`}>
-            Courses
+            AI Tutor
           </Link>
           <Link to="/code-review" className={`text-sm transition-colors ${location.pathname === '/code-review' ? 'text-primary' : 'text-foreground/80 hover:text-primary'}`}>
-            Code Review
+            DSA Trainer
           </Link>
           <Link to="/code-history" className={`text-sm transition-colors ${location.pathname === '/code-history' ? 'text-primary' : 'text-foreground/80 hover:text-primary'}`}>
             History
