@@ -13,7 +13,8 @@ import {
   HelpCircle, 
   Loader, 
   FileText,
-  CheckCircle
+  CheckCircle,
+  KeyRound
 } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -21,6 +22,8 @@ import { Label } from '@/components/ui/label';
 import { useIsMobile } from '@/hooks/use-mobile';
 import AIChatMessage from '@/components/AIChatMessage';
 import { cn } from '@/lib/utils';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from '@/components/ui/dialog';
 
 // Types for chat messages
 interface ChatMessage {
@@ -30,8 +33,6 @@ interface ChatMessage {
   timestamp: Date;
   isCode?: boolean;
 }
-
-const AI_THINKING_DELAY = 2000;
 
 const CourseListing: React.FC = () => {
   const [messages, setMessages] = useState<ChatMessage[]>([
@@ -49,6 +50,11 @@ const CourseListing: React.FC = () => {
   const [selectedTopics, setSelectedTopics] = useState<string[]>([]);
   const [fileUploaded, setFileUploaded] = useState<File | null>(null);
   const [activeTab, setActiveTab] = useState('chat');
+  const [groqApiKey, setGroqApiKey] = useState<string>(() => {
+    const savedKey = localStorage.getItem('groqApiKey');
+    return savedKey || '';
+  });
+  const [apiKeyDialogOpen, setApiKeyDialogOpen] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const isMobile = useIsMobile();
   const { toast } = useToast();
@@ -65,8 +71,25 @@ const CourseListing: React.FC = () => {
     scrollToBottom();
   }, [messages]);
 
+  useEffect(() => {
+    // Check if API key is missing and show dialog if needed
+    if (!groqApiKey) {
+      setApiKeyDialogOpen(true);
+    }
+  }, [groqApiKey]);
+
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  const saveApiKey = (key: string) => {
+    setGroqApiKey(key);
+    localStorage.setItem('groqApiKey', key);
+    setApiKeyDialogOpen(false);
+    toast({
+      title: "API Key Saved",
+      description: "Your Groq API key has been saved securely.",
+    });
   };
 
   const handleSendMessage = async () => {
@@ -83,31 +106,80 @@ const CourseListing: React.FC = () => {
     setInput('');
     setIsProcessing(true);
     
-    // Simulate AI thinking/typing
-    setTimeout(() => {
-      // Simulate API response
-      const assistantMessage: ChatMessage = {
+    try {
+      if (!groqApiKey) {
+        setApiKeyDialogOpen(true);
+        setIsProcessing(false);
+        return;
+      }
+      
+      const assistantMessage = await callGroqApi(input);
+      setMessages(prev => [...prev, assistantMessage]);
+    } catch (error) {
+      console.error('Error calling Groq API:', error);
+      const errorMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: generateMockResponse(input),
-        timestamp: new Date(),
-        isCode: input.toLowerCase().includes('code') || input.toLowerCase().includes('example')
+        content: "I'm sorry, I encountered an error processing your request. Please try again or check your API key.",
+        timestamp: new Date()
       };
-      
-      setMessages(prev => [...prev, assistantMessage]);
+      setMessages(prev => [...prev, errorMessage]);
+      toast({
+        title: "Error",
+        description: "Failed to get a response from the AI service.",
+        variant: "destructive"
+      });
+    } finally {
       setIsProcessing(false);
-    }, AI_THINKING_DELAY);
+    }
   };
 
-  const generateMockResponse = (query: string): string => {
-    // This is a mock response generator - in a real app this would be replaced with API call
-    if (query.toLowerCase().includes('course') || query.toLowerCase().includes('learn')) {
-      return "Based on your interest, I recommend starting with these core concepts:\n\n1. Fundamental principles\n2. Key theories\n3. Practical applications\n\nWould you like me to create a detailed learning path for any of these areas?";
-    } else if (query.toLowerCase().includes('code') || query.toLowerCase().includes('example')) {
-      return "```javascript\n// Here's a sample code implementation\nfunction calculateComplexity(n) {\n  let result = 0;\n  for (let i = 0; i < n; i++) {\n    result += i;\n  }\n  return result;\n}\n\n// Time complexity: O(n)\n// Space complexity: O(1)\n```";
-    } else {
-      return "I understand you're interested in this topic. To provide the most helpful guidance, could you share more about your current knowledge level and specific learning goals?";
+  const callGroqApi = async (prompt: string): Promise<ChatMessage> => {
+    const previousMessages = messages
+      .slice(-6) // Only include the last 6 messages for context
+      .map(msg => ({
+        role: msg.role,
+        content: msg.content
+      }));
+      
+    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${groqApiKey}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        model: 'llama3-8b-8192', // Using Llama 3 8B model
+        messages: [
+          {
+            role: 'system',
+            content: 'You are an expert AI tutor specializing in personalized education. You help students by creating customized learning paths, explaining complex concepts, and providing code examples when relevant. When showing code, make sure to use proper markdown formatting with ```language code blocks. Keep your responses helpful, clear, and educational.'
+          },
+          ...previousMessages,
+          {
+            role: 'user',
+            content: prompt
+          }
+        ],
+        temperature: 0.7,
+        max_tokens: 1024
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error(`Groq API error: ${response.status}`);
     }
+
+    const data = await response.json();
+    const aiResponse = data.choices[0].message.content;
+    
+    return {
+      id: (Date.now() + 1).toString(),
+      role: 'assistant',
+      content: aiResponse,
+      timestamp: new Date(),
+      isCode: aiResponse.includes('```') // Automatically detect code blocks
+    };
   };
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -133,31 +205,85 @@ const CourseListing: React.FC = () => {
     );
   };
 
-  const handleGenerateCourse = () => {
+  const handleGenerateCourse = async () => {
+    if (!groqApiKey) {
+      setApiKeyDialogOpen(true);
+      return;
+    }
+    
     setIsProcessing(true);
+    
+    let fileContent = '';
+    if (fileUploaded) {
+      try {
+        fileContent = await readFileAsText(fileUploaded);
+      } catch (error) {
+        console.error('Error reading file:', error);
+        toast({
+          title: "Error Reading File",
+          description: "There was an error reading your syllabus file.",
+          variant: "destructive"
+        });
+      }
+    }
+    
+    const coursePrompt = `Please generate a comprehensive learning path based on these details:
+      
+Goals: ${goals || 'No specific goals provided'}
+      
+Topics of interest: ${selectedTopics.length > 0 ? selectedTopics.join(', ') : 'No specific topics selected'}
+      
+${fileContent ? `Syllabus information: ${fileContent}` : 'No syllabus provided'}
+      
+Please structure the learning path with clear sections, including recommended resources, time estimates, and milestones. Include a mix of theoretical concepts and practical exercises.`;
     
     const userMessage: ChatMessage = {
       id: Date.now().toString(),
       role: 'user',
-      content: `Please generate a course based on these goals: ${goals} ${selectedTopics.length > 0 ? `\nTopics: ${selectedTopics.join(', ')}` : ''} ${fileUploaded ? `\nI've also uploaded a syllabus: ${fileUploaded.name}` : ''}`,
+      content: coursePrompt,
       timestamp: new Date()
     };
     
     setMessages(prev => [...prev, userMessage]);
     
-    // Simulate API response
-    setTimeout(() => {
-      const assistantMessage: ChatMessage = {
+    try {
+      const assistantMessage = await callGroqApi(coursePrompt);
+      setMessages(prev => [...prev, assistantMessage]);
+      setActiveTab('chat');
+    } catch (error) {
+      console.error('Error generating course:', error);
+      const errorMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: `# Personalized Learning Path\n\nBased on your goals${selectedTopics.length > 0 ? ` and selected topics (${selectedTopics.join(', ')})` : ''}${fileUploaded ? ` and your syllabus (${fileUploaded.name})` : ''}, I've created this custom learning path for you:\n\n## Week 1-2: Foundations\n- Core concepts overview\n- Basic principles and terminology\n- Fundamental exercises\n\n## Week 3-4: Intermediate Applications\n- Practical problem-solving techniques\n- Real-world case studies\n- Guided projects with increasing complexity\n\n## Week 5-6: Advanced Implementation\n- Specialized techniques\n- Integration with other disciplines\n- Independent project work\n\nWould you like me to elaborate on any section of this learning path?`,
+        content: "I'm sorry, I encountered an error generating your course. Please try again or check your API key.",
         timestamp: new Date()
       };
-      
-      setMessages(prev => [...prev, assistantMessage]);
+      setMessages(prev => [...prev, errorMessage]);
+      toast({
+        title: "Error",
+        description: "Failed to generate the learning path.",
+        variant: "destructive"
+      });
+    } finally {
       setIsProcessing(false);
-      setActiveTab('chat');
-    }, AI_THINKING_DELAY * 1.5);
+    }
+  };
+
+  const readFileAsText = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        if (event.target?.result) {
+          // Limit text to prevent exceeding token limits
+          const text = event.target.result.toString();
+          resolve(text.length > 2000 ? text.substring(0, 2000) + '... (content truncated)' : text);
+        } else {
+          reject(new Error('Failed to read file'));
+        }
+      };
+      reader.onerror = () => reject(reader.error);
+      reader.readAsText(file);
+    });
   };
 
   const handleAskQuestion = () => {
@@ -174,10 +300,26 @@ const CourseListing: React.FC = () => {
   };
 
   const handleSaveSession = () => {
-    // In a real app, this would save to database or export as file
+    // Create a downloadable JSON of the conversation
+    const conversation = messages.map(msg => ({
+      role: msg.role,
+      content: msg.content,
+      timestamp: msg.timestamp
+    }));
+    
+    const blob = new Blob([JSON.stringify(conversation, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `ai-tutor-session-${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    
     toast({
       title: "Session Saved",
-      description: "Your tutoring session has been saved.",
+      description: "Your tutoring session has been saved to your downloads.",
       action: (
         <Button variant="outline" size="sm">
           <CheckCircle className="h-4 w-4" />
@@ -196,16 +338,44 @@ const CourseListing: React.FC = () => {
             <h1 className="text-3xl font-bold text-white font-heading">
               AI Course Tutor <span className="text-primary">.</span>
             </h1>
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={handleSaveSession}
-              className="bg-card/40 border-border/50 hover:bg-card/60"
-            >
-              <Save className="h-4 w-4 mr-2" />
-              Save Session
-            </Button>
+            <div className="flex gap-2">
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => setApiKeyDialogOpen(true)}
+                className="bg-card/40 border-border/50 hover:bg-card/60"
+              >
+                <KeyRound className="h-4 w-4 mr-2" />
+                API Key
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={handleSaveSession}
+                className="bg-card/40 border-border/50 hover:bg-card/60"
+              >
+                <Save className="h-4 w-4 mr-2" />
+                Save Session
+              </Button>
+            </div>
           </div>
+          
+          {!groqApiKey && (
+            <Alert className="mb-4 bg-card/40 border-primary/30">
+              <AlertDescription className="flex items-center">
+                <KeyRound className="h-4 w-4 mr-2 text-primary" />
+                <span>Please set your Groq API key to enable AI functionality.</span>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="ml-2 border-primary text-primary" 
+                  onClick={() => setApiKeyDialogOpen(true)}
+                >
+                  Set API Key
+                </Button>
+              </AlertDescription>
+            </Alert>
+          )}
           
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 relative">
             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[500px] bg-gradient-to-b from-primary/20 to-transparent rounded-full blur-[120px] opacity-30 z-0"></div>
@@ -379,6 +549,47 @@ const CourseListing: React.FC = () => {
           )}
         </div>
       </div>
+
+      {/* API Key Dialog */}
+      <Dialog open={apiKeyDialogOpen} onOpenChange={setApiKeyDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Enter Groq API Key</DialogTitle>
+            <DialogDescription>
+              Enter your Groq API key to enable the AI tutor. Your key will be stored in your browser's local storage.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex items-center space-x-2 my-4">
+            <div className="grid flex-1 gap-2">
+              <Label htmlFor="apiKey" className="sr-only">
+                API Key
+              </Label>
+              <Input
+                id="apiKey"
+                type="password"
+                value={groqApiKey}
+                onChange={(e) => setGroqApiKey(e.target.value)}
+                placeholder="sk-xxxxxxxxxxxxxxxxxxxxxxxx"
+                className="w-full"
+              />
+            </div>
+          </div>
+          <DialogFooter className="sm:justify-between">
+            <DialogClose asChild>
+              <Button type="button" variant="secondary">
+                Cancel
+              </Button>
+            </DialogClose>
+            <Button 
+              type="button" 
+              disabled={!groqApiKey.trim().startsWith('sk-')} 
+              onClick={() => saveApiKey(groqApiKey)}
+            >
+              Save API Key
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
