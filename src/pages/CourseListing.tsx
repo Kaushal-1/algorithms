@@ -13,8 +13,7 @@ import {
   HelpCircle, 
   Loader, 
   FileText,
-  CheckCircle,
-  KeyRound
+  CheckCircle
 } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -23,7 +22,9 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import AIChatMessage from '@/components/AIChatMessage';
 import { cn } from '@/lib/utils';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from '@/components/ui/dialog';
+
+// Hardcoded Groq API key - same as DSA Trainer
+const GROQ_API_KEY = "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";
 
 // Types for chat messages
 interface ChatMessage {
@@ -50,11 +51,6 @@ const CourseListing: React.FC = () => {
   const [selectedTopics, setSelectedTopics] = useState<string[]>([]);
   const [fileUploaded, setFileUploaded] = useState<File | null>(null);
   const [activeTab, setActiveTab] = useState('chat');
-  const [groqApiKey, setGroqApiKey] = useState<string>(() => {
-    const savedKey = localStorage.getItem('groqApiKey');
-    return savedKey || '';
-  });
-  const [apiKeyDialogOpen, setApiKeyDialogOpen] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const isMobile = useIsMobile();
   const { toast } = useToast();
@@ -71,25 +67,8 @@ const CourseListing: React.FC = () => {
     scrollToBottom();
   }, [messages]);
 
-  useEffect(() => {
-    // Check if API key is missing and show dialog if needed
-    if (!groqApiKey) {
-      setApiKeyDialogOpen(true);
-    }
-  }, [groqApiKey]);
-
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
-
-  const saveApiKey = (key: string) => {
-    setGroqApiKey(key);
-    localStorage.setItem('groqApiKey', key);
-    setApiKeyDialogOpen(false);
-    toast({
-      title: "API Key Saved",
-      description: "Your Groq API key has been saved securely.",
-    });
   };
 
   const handleSendMessage = async () => {
@@ -107,12 +86,6 @@ const CourseListing: React.FC = () => {
     setIsProcessing(true);
     
     try {
-      if (!groqApiKey) {
-        setApiKeyDialogOpen(true);
-        setIsProcessing(false);
-        return;
-      }
-      
       const assistantMessage = await callGroqApi(input);
       setMessages(prev => [...prev, assistantMessage]);
     } catch (error) {
@@ -120,7 +93,7 @@ const CourseListing: React.FC = () => {
       const errorMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: "I'm sorry, I encountered an error processing your request. Please try again or check your API key.",
+        content: "I'm sorry, I encountered an error processing your request. Please try again.",
         timestamp: new Date()
       };
       setMessages(prev => [...prev, errorMessage]);
@@ -145,7 +118,7 @@ const CourseListing: React.FC = () => {
     const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${groqApiKey}`,
+        'Authorization': `Bearer ${GROQ_API_KEY}`,
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
@@ -206,11 +179,6 @@ const CourseListing: React.FC = () => {
   };
 
   const handleGenerateCourse = async () => {
-    if (!groqApiKey) {
-      setApiKeyDialogOpen(true);
-      return;
-    }
-    
     setIsProcessing(true);
     
     let fileContent = '';
@@ -255,7 +223,7 @@ Please structure the learning path with clear sections, including recommended re
       const errorMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: "I'm sorry, I encountered an error generating your course. Please try again or check your API key.",
+        content: "I'm sorry, I encountered an error generating your course. Please try again.",
         timestamp: new Date()
       };
       setMessages(prev => [...prev, errorMessage]);
@@ -336,18 +304,9 @@ Please structure the learning path with clear sections, including recommended re
         <div className="max-w-7xl mx-auto">
           <div className="flex justify-between items-center mb-6">
             <h1 className="text-3xl font-bold text-white font-heading">
-              AI Course Tutor <span className="text-primary">.</span>
+              AI Tutor <span className="text-primary">.</span>
             </h1>
             <div className="flex gap-2">
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={() => setApiKeyDialogOpen(true)}
-                className="bg-card/40 border-border/50 hover:bg-card/60"
-              >
-                <KeyRound className="h-4 w-4 mr-2" />
-                API Key
-              </Button>
               <Button 
                 variant="outline" 
                 size="sm"
@@ -359,23 +318,6 @@ Please structure the learning path with clear sections, including recommended re
               </Button>
             </div>
           </div>
-          
-          {!groqApiKey && (
-            <Alert className="mb-4 bg-card/40 border-primary/30">
-              <AlertDescription className="flex items-center">
-                <KeyRound className="h-4 w-4 mr-2 text-primary" />
-                <span>Please set your Groq API key to enable AI functionality.</span>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="ml-2 border-primary text-primary" 
-                  onClick={() => setApiKeyDialogOpen(true)}
-                >
-                  Set API Key
-                </Button>
-              </AlertDescription>
-            </Alert>
-          )}
           
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 relative">
             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[500px] bg-gradient-to-b from-primary/20 to-transparent rounded-full blur-[120px] opacity-30 z-0"></div>
@@ -549,47 +491,6 @@ Please structure the learning path with clear sections, including recommended re
           )}
         </div>
       </div>
-
-      {/* API Key Dialog */}
-      <Dialog open={apiKeyDialogOpen} onOpenChange={setApiKeyDialogOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Enter Groq API Key</DialogTitle>
-            <DialogDescription>
-              Enter your Groq API key to enable the AI tutor. Your key will be stored in your browser's local storage.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="flex items-center space-x-2 my-4">
-            <div className="grid flex-1 gap-2">
-              <Label htmlFor="apiKey" className="sr-only">
-                API Key
-              </Label>
-              <Input
-                id="apiKey"
-                type="password"
-                value={groqApiKey}
-                onChange={(e) => setGroqApiKey(e.target.value)}
-                placeholder="sk-xxxxxxxxxxxxxxxxxxxxxxxx"
-                className="w-full"
-              />
-            </div>
-          </div>
-          <DialogFooter className="sm:justify-between">
-            <DialogClose asChild>
-              <Button type="button" variant="secondary">
-                Cancel
-              </Button>
-            </DialogClose>
-            <Button 
-              type="button" 
-              disabled={!groqApiKey.trim().startsWith('sk-')} 
-              onClick={() => saveApiKey(groqApiKey)}
-            >
-              Save API Key
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 };
