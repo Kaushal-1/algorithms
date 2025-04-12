@@ -29,7 +29,6 @@ export interface RoadmapStep {
 }
 
 export interface Roadmap {
-  id?: string;
   experience: string;
   topic: string;
   steps: RoadmapStep[];

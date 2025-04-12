@@ -1,13 +1,19 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Send, Loader, Save } from 'lucide-react';
+import { Send, Loader } from 'lucide-react';
 import AIChatMessage from '@/components/AIChatMessage';
 import { cn } from '@/lib/utils';
 import { Roadmap, RoadmapStep } from './RoadmapDisplay';
-import { createSession } from '@/services/chatSessionService';
-import { useToast } from '@/components/ui/use-toast';
-import { ChatMessage } from '@/types/ChatSession';
+
+interface ChatMessage {
+  id: string;
+  role: 'user' | 'assistant';
+  content: string;
+  timestamp: Date;
+  isCode?: boolean;
+}
 
 interface StepwiseAIGuideProps {
   roadmap: Roadmap;
@@ -26,10 +32,10 @@ const StepwiseAIGuide: React.FC<StepwiseAIGuideProps> = ({
   const [isProcessing, setIsProcessing] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const { toast } = useToast();
   
   const currentStepData = roadmap.steps.find(step => step.step === currentStep);
   
+  // Generate initial message when currentStep changes
   useEffect(() => {
     if (currentStepData) {
       const initialMessage: ChatMessage = {
@@ -43,6 +49,7 @@ const StepwiseAIGuide: React.FC<StepwiseAIGuideProps> = ({
     }
   }, [currentStep, currentStepData]);
   
+  // Scroll to bottom when messages change
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
@@ -83,10 +90,11 @@ const StepwiseAIGuide: React.FC<StepwiseAIGuideProps> = ({
   };
   
   const callGroqApi = async (prompt: string, stepData?: RoadmapStep): Promise<ChatMessage> => {
+    // Hardcoded Groq API key
     const GROQ_API_KEY = "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";
     
     const previousMessages = messages
-      .slice(-6)
+      .slice(-6) // Only include the last 6 messages for context
       .map(msg => ({
         role: msg.role,
         content: msg.content
@@ -134,55 +142,19 @@ const StepwiseAIGuide: React.FC<StepwiseAIGuideProps> = ({
     };
   };
   
-  const handleSaveSession = () => {
-    if (messages.length <= 1) {
-      toast({
-        title: "Cannot save empty session",
-        description: "Please have a conversation before saving the session.",
-        variant: "destructive"
-      });
-      return;
-    }
-    
-    const title = currentStepData 
-      ? `${currentStepData.title} - Step ${currentStep}`
-      : "AI Tutor Session";
-    
-    createSession(
-      title,
-      messages,
-      roadmap.topic,
-      roadmap.experience,
-      roadmap.id
-    );
-    
-    toast({
-      title: "Session saved",
-      description: "Your chat session has been saved successfully."
-    });
-  };
-  
   return (
     <div className="space-y-4">
       <div className="bg-card/40 backdrop-blur-sm border border-border/50 rounded-xl overflow-hidden shadow-xl h-[350px] flex flex-col">
-        <div className="p-4 border-b border-border/50 bg-muted/30 flex justify-between items-center">
+        <div className="p-4 border-b border-border/50 bg-muted/30">
           <h2 className="font-medium text-lg flex items-center">
             <span className="text-xl mr-2" role="img" aria-label="Current step icon">
               {currentStepData?.icon || "🧠"}
             </span>
             {currentStepData?.title || "Learning Guide"}
           </h2>
-          <Button 
-            onClick={handleSaveSession} 
-            variant="outline" 
-            size="sm"
-            className="h-8 gap-1.5"
-          >
-            <Save className="h-3.5 w-3.5" />
-            Save
-          </Button>
         </div>
         
+        {/* Messages Container */}
         <div className="flex-1 overflow-y-auto p-4 space-y-4">
           {messages.map((message) => (
             <AIChatMessage 
@@ -200,6 +172,7 @@ const StepwiseAIGuide: React.FC<StepwiseAIGuideProps> = ({
           <div ref={messagesEndRef} />
         </div>
         
+        {/* Input Area */}
         <div className="p-4 border-t border-border/50 bg-muted/30">
           <div className="flex items-center space-x-2">
             <Input
