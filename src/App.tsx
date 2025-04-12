@@ -7,6 +7,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
 import { DSAProvider } from "./contexts/DSAContext";
+import { ChatSessionProvider } from "./contexts/ChatSessionContext";
 import { DSAProtectedRoute } from "./components/DSARoutesProtection";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Index from "./pages/Index";
@@ -33,95 +34,97 @@ const App = () => {
         <BrowserRouter>
           <AuthProvider>
             <DSAProvider>
-              <TooltipProvider>
-                <Toaster />
-                <Sonner />
-                <Routes>
-                  <Route path="/" element={<Index />} />
-                  <Route path="/login" element={<Login />} />
-                  <Route path="/signup" element={<SignUp />} />
-                  
-                  {/* Protected routes - require authentication */}
-                  <Route 
-                    path="/code-review" 
-                    element={
-                      <ProtectedRoute>
-                        <CodeReview />
-                      </ProtectedRoute>
-                    } 
-                  />
-                  <Route 
-                    path="/dsa-chat-prompt" 
-                    element={
-                      <ProtectedRoute>
-                        <DSAChatPrompt />
-                      </ProtectedRoute>
-                    } 
-                  />
-                  <Route 
-                    path="/dsa-problem" 
-                    element={
-                      <ProtectedRoute>
-                        <DSAProtectedRoute requiresProblem={true}>
-                          <DSAProblem />
-                        </DSAProtectedRoute>
-                      </ProtectedRoute>
-                    } 
-                  />
-                  <Route 
-                    path="/dsa-reveal-answer" 
-                    element={
-                      <ProtectedRoute>
-                        <DSAProtectedRoute requiresProblem={true}>
-                          <DSARevealAnswer />
-                        </DSAProtectedRoute>
-                      </ProtectedRoute>
-                    } 
-                  />
-                  <Route 
-                    path="/code-history" 
-                    element={
-                      <ProtectedRoute>
-                        <CodeHistory />
-                      </ProtectedRoute>
-                    } 
-                  />
-                  <Route 
-                    path="/courses" 
-                    element={
-                      <ProtectedRoute>
-                        <CourseListing />
-                      </ProtectedRoute>
-                    } 
-                  />
-                  <Route 
-                    path="/user-profile" 
-                    element={
-                      <ProtectedRoute>
-                        <UserProfile />
-                      </ProtectedRoute>
-                    } 
-                  />
-                  <Route 
-                    path="/settings" 
-                    element={
-                      <ProtectedRoute>
-                        <Settings />
-                      </ProtectedRoute>
-                    } 
-                  />
-                  <Route 
-                    path="/community" 
-                    element={
-                      <ProtectedRoute>
-                        <Community />
-                      </ProtectedRoute>
-                    } 
-                  />
-                  {/* Catch-all route */}
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
-              </TooltipProvider>
+              <ChatSessionProvider>
+                <TooltipProvider>
+                  <Toaster />
+                  <Sonner />
+                  <Routes>
+                    <Route path="/" element={<Index />} />
+                    <Route path="/login" element={<Login />} />
+                    <Route path="/signup" element={<SignUp />} />
+                    
+                    {/* Protected routes - require authentication */}
+                    <Route 
+                      path="/code-review" 
+                      element={
+                        <ProtectedRoute>
+                          <CodeReview />
+                        </ProtectedRoute>
+                      } 
+                    />
+                    <Route 
+                      path="/dsa-chat-prompt" 
+                      element={
+                        <ProtectedRoute>
+                          <DSAChatPrompt />
+                        </ProtectedRoute>
+                      } 
+                    />
+                    <Route 
+                      path="/dsa-problem" 
+                      element={
+                        <ProtectedRoute>
+                          <DSAProtectedRoute requiresProblem={true}>
+                            <DSAProblem />
+                          </DSAProtectedRoute>
+                        </ProtectedRoute>
+                      } 
+                    />
+                    <Route 
+                      path="/dsa-reveal-answer" 
+                      element={
+                        <ProtectedRoute>
+                          <DSAProtectedRoute requiresProblem={true}>
+                            <DSARevealAnswer />
+                          </DSAProtectedRoute>
+                        </ProtectedRoute>
+                      } 
+                    />
+                    <Route 
+                      path="/code-history" 
+                      element={
+                        <ProtectedRoute>
+                          <CodeHistory />
+                        </ProtectedRoute>
+                      } 
+                    />
+                    <Route 
+                      path="/courses" 
+                      element={
+                        <ProtectedRoute>
+                          <CourseListing />
+                        </ProtectedRoute>
+                      } 
+                    />
+                    <Route 
+                      path="/user-profile" 
+                      element={
+                        <ProtectedRoute>
+                          <UserProfile />
+                        </ProtectedRoute>
+                      } 
+                    />
+                    <Route 
+                      path="/settings" 
+                      element={
+                        <ProtectedRoute>
+                          <Settings />
+                        </ProtectedRoute>
+                      } 
+                    />
+                    <Route 
+                      path="/community" 
+                      element={
+                        <ProtectedRoute>
+                          <Community />
+                        </ProtectedRoute>
+                      } 
+                    />
+                    {/* Catch-all route */}
+                    <Route path="*" element={<NotFound />} />
+                  </Routes>
+                </TooltipProvider>
+              </ChatSessionProvider>
             </DSAProvider>
           </AuthProvider>
         </BrowserRouter>

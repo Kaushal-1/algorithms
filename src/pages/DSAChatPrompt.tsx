@@ -1,197 +1,69 @@
 
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { toast } from 'sonner';
-import { useDSA } from '@/contexts/DSAContext';
-import { Separator } from '@/components/ui/separator';
-import { MessageSquare, Loader2 } from 'lucide-react';
+import { Save } from 'lucide-react';
+import RoadmapGenerator from '@/components/RoadmapGenerator';
+import ChatSidebar from '@/components/ChatSidebar';
+import { useToast } from '@/components/ui/use-toast';
 
 const DSAChatPrompt: React.FC = () => {
-  const navigate = useNavigate();
-  const { generateProblem, setCurrentProblem } = useDSA();
+  const [activeSessionId, setActiveSessionId] = useState<string | undefined>(undefined);
+  const { toast } = useToast();
   
-  const [topic, setTopic] = useState<string>('');
-  const [difficulty, setDifficulty] = useState<string>('Medium');
-  const [isGenerating, setIsGenerating] = useState<boolean>(false);
-  const [messages, setMessages] = useState<{ role: 'system' | 'user'; content: string }[]>([
-    { role: 'system', content: 'Hi! I can help you practice Data Structures & Algorithms. What would you like to practice today?' }
-  ]);
-
-  const handleGenerateProblem = async () => {
-    if (!topic.trim()) {
-      toast.error('Please enter a DSA topic');
-      return;
-    }
-
-    setIsGenerating(true);
-    setMessages(prev => [...prev, 
-      { role: 'user', content: `Generate a ${difficulty} problem about ${topic}` },
-      { role: 'system', content: 'Generating your problem...' }
-    ]);
-
-    try {
-      const problem = await generateProblem(topic, difficulty);
-      setCurrentProblem(problem);
-      
-      setMessages(prev => {
-        // Replace the 'Generating...' message with success
-        const messages = [...prev];
-        messages[messages.length - 1] = { 
-          role: 'system', 
-          content: `I've created a ${difficulty} difficulty problem for you: "${problem.title}". Let's solve it!` 
-        };
-        return messages;
-      });
-      
-      // Navigate to problem display page
-      setTimeout(() => {
-        navigate('/dsa-problem');
-      }, 1500);
-      
-    } catch (error) {
-      console.error('Error generating problem:', error);
-      toast.error('Failed to generate problem. Please try again.');
-      
-      setMessages(prev => {
-        // Replace the 'Generating...' message with error
-        const messages = [...prev];
-        messages[messages.length - 1] = { 
-          role: 'system', 
-          content: 'Sorry, I encountered an error generating your problem. Please try again.' 
-        };
-        return messages;
-      });
-    } finally {
-      setIsGenerating(false);
-    }
+  const handleSessionSelect = (sessionId: string) => {
+    setActiveSessionId(sessionId);
+    // Here we would load the selected session from the backend
   };
-
+  
+  const handleNewSession = () => {
+    setActiveSessionId(undefined);
+    // Here we would reset the chat UI to a new session
+  };
+  
+  const handleSaveSession = () => {
+    // Here we would save the current session to the backend
+    toast({
+      title: "Session saved",
+      description: "Your chat session has been saved successfully.",
+    });
+  };
+  
   return (
-    <div className="flex flex-col min-h-screen bg-algos-dark">
+    <div className="min-h-screen bg-algos-dark">
       <Navbar />
       
-      <main className="flex-grow pt-20 px-4 pb-8 max-w-[1200px] mx-auto w-full">
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold text-foreground">DSA Trainer</h1>
-          <p className="text-muted-foreground">Generate a personalized DSA problem and practice your skills</p>
-        </div>
+      <div className="pt-20 h-[calc(100vh-theme(spacing.20))] flex">
+        <ChatSidebar 
+          activeSessionId={activeSessionId}
+          onSessionSelect={handleSessionSelect}
+          onNewSession={handleNewSession}
+        />
         
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 h-[calc(100vh-220px)]">
-          <div className="lg:col-span-8 lg:order-2">
-            <Card className="h-full border-border bg-card/50 backdrop-blur-sm overflow-hidden flex flex-col">
-              <CardHeader className="border-b border-border pb-3">
-                <CardTitle className="flex items-center gap-2 text-lg font-medium text-foreground">
-                  <MessageSquare size={18} />
-                  DSA Chat
-                </CardTitle>
-              </CardHeader>
-              
-              <CardContent className="flex-grow p-0">
-                <div className="h-[calc(100vh-350px)] overflow-y-auto p-6">
-                  {messages.map((message, index) => (
-                    <div 
-                      key={index} 
-                      className={`mb-4 max-w-[80%] ${message.role === 'system' ? 'ml-0' : 'ml-auto'}`}
-                    >
-                      <div className={`p-3 rounded-lg ${
-                        message.role === 'system' 
-                          ? 'bg-muted text-foreground' 
-                          : 'bg-primary text-primary-foreground'
-                      }`}>
-                        {message.content}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-              
-              <CardFooter className="border-t border-border p-4">
-                <div className="flex gap-3 w-full">
-                  <Input
-                    value={topic}
-                    onChange={(e) => setTopic(e.target.value)}
-                    placeholder="Enter DSA topic (e.g., binary search, linked lists, dynamic programming)"
-                    className="flex-grow"
-                    disabled={isGenerating}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' && !isGenerating) {
-                        handleGenerateProblem();
-                      }
-                    }}
-                  />
-                  <Button 
-                    onClick={handleGenerateProblem} 
-                    className="bg-algos-green hover:bg-algos-green/90 text-black font-medium"
-                    disabled={isGenerating}
-                  >
-                    {isGenerating ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Generating...
-                      </>
-                    ) : (
-                      'Generate Problem'
-                    )}
-                  </Button>
-                </div>
-              </CardFooter>
-            </Card>
+        <div className="flex-1 relative">
+          <div className="absolute top-4 right-4 z-10">
+            <Button 
+              onClick={handleSaveSession}
+              className="bg-algos-highlight text-black hover:bg-algos-highlight/90 flex items-center gap-2"
+            >
+              <Save className="h-4 w-4" />
+              Save Session
+            </Button>
           </div>
           
-          <div className="lg:col-span-4 lg:order-1">
-            <Card className="h-full border-border bg-card/50 backdrop-blur-sm">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-lg font-medium text-foreground">Configure Your Problem</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="topic">DSA Topic</Label>
-                    <Input
-                      id="topic"
-                      value={topic}
-                      onChange={(e) => setTopic(e.target.value)}
-                      placeholder="e.g., binary search, graphs, dynamic programming"
-                      disabled={isGenerating}
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="difficulty">Difficulty Level</Label>
-                    <Select value={difficulty} onValueChange={setDifficulty} disabled={isGenerating}>
-                      <SelectTrigger id="difficulty" className="bg-muted border-border">
-                        <SelectValue placeholder="Select difficulty" />
-                      </SelectTrigger>
-                      <SelectContent className="bg-card border-border">
-                        <SelectItem value="Easy">Easy</SelectItem>
-                        <SelectItem value="Medium">Medium</SelectItem>
-                        <SelectItem value="Hard">Hard</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  
-                  <Separator className="my-4" />
-                  
-                  <div className="space-y-2">
-                    <h3 className="font-medium">Tips for good problems:</h3>
-                    <ul className="text-sm text-muted-foreground space-y-1 pl-5 list-disc">
-                      <li>Be specific about the algorithm type</li>
-                      <li>Mention data structures you want to practice</li>
-                      <li>Try different difficulties to test your skills</li>
-                    </ul>
-                  </div>
+          <div className="h-full p-4 md:p-8 overflow-auto">
+            <div className="max-w-7xl mx-auto">
+              <div className="grid grid-cols-1 relative">
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[500px] bg-gradient-to-b from-primary/20 to-transparent rounded-full blur-[120px] opacity-30 z-0"></div>
+                
+                <div className="bg-card/40 backdrop-blur-sm border border-border/50 rounded-xl overflow-hidden shadow-xl p-6 relative z-10">
+                  <RoadmapGenerator />
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           </div>
         </div>
-      </main>
+      </div>
     </div>
   );
 };
