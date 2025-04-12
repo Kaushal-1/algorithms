@@ -1,6 +1,5 @@
-
 import React, { useState, useRef, useEffect } from 'react';
-import { Roadmap, RoadmapStep } from './RoadmapDisplay';
+import { Roadmap, RoadmapStep, ChapterContent, DetailedContent } from './RoadmapDisplay';
 import RoadmapDisplay from './RoadmapDisplay';
 import ExperienceSelector from './ExperienceSelector';
 import TopicInput from './TopicInput';
@@ -37,7 +36,11 @@ const RoadmapGenerator: React.FC = () => {
     
     try {
       const generatedRoadmap = await generateRoadmap(selectedExperience as ExperienceLevel, topic);
-      setRoadmap(generatedRoadmap);
+      
+      // After generating the basic roadmap, enhance it with detailed content
+      const enhancedRoadmap = await enhanceRoadmapWithDetails(generatedRoadmap);
+      
+      setRoadmap(enhancedRoadmap);
       setCurrentRoadmapStep(1);
       setCompletedSteps([]);
       setCurrentStep('roadmap');
@@ -153,6 +156,115 @@ Assign a relevant emoji icon for each step (used in UI rendering).`;
           }
         ]
       };
+    }
+  };
+  
+  const enhanceRoadmapWithDetails = async (basicRoadmap: Roadmap): Promise<Roadmap> => {
+    try {
+      const systemPrompt = `You are an AI educational content creator that provides detailed syllabus information.
+
+For the given roadmap step, create a detailed chapter-by-chapter breakdown with specific topics to learn.
+
+Output Format:
+Return the detailed content in this JSON structure:
+{
+  "detailedContent": [
+    {
+      "title": "Chapter 1: Introduction to [Topic]",
+      "sections": [
+        {
+          "title": "What is [Topic]?",
+          "items": ["Concept 1", "Concept 2", "Concept 3"]
+        },
+        {
+          "title": "History & Fundamentals",
+          "items": ["Item 1", "Item 2", "Item 3"]
+        }
+      ]
+    },
+    {
+      "title": "Chapter 2: [Another Topic]",
+      "sections": [
+        {
+          "title": "Core Principles",
+          "items": ["Principle 1", "Principle 2", "Principle 3"]
+        }
+      ]
+    }
+  ]
+}
+
+Create 2-4 chapters per step, with 2-3 sections per chapter, and 3-5 items per section.
+Focus on specific, actionable learning items.
+Return only JSON without explanations or markdown.`;
+
+      // Create enhanced steps with detailed content
+      const enhancedSteps: RoadmapStep[] = [];
+      
+      for (const step of basicRoadmap.steps) {
+        try {
+          const userPrompt = `Create a detailed syllabus for Step ${step.step}: "${step.title}" in the context of ${basicRoadmap.topic} for ${basicRoadmap.experience} level learners. The step description is: "${step.description}"`;
+          
+          const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${GROQ_API_KEY}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              model: 'llama3-8b-8192',
+              messages: [
+                { role: 'system', content: systemPrompt },
+                { role: 'user', content: userPrompt }
+              ],
+              temperature: 0.7,
+              max_tokens: 1500
+            })
+          });
+  
+          if (!response.ok) {
+            throw new Error(`Groq API error: ${response.status}`);
+          }
+  
+          const data = await response.json();
+          const detailedContentString = data.choices[0].message.content;
+          
+          // Extract JSON from the response
+          let jsonMatch = detailedContentString.match(/```json\n([\s\S]*?)\n```/);
+          let detailedContent: { detailedContent: ChapterContent[] };
+          
+          if (jsonMatch && jsonMatch[1]) {
+            // If JSON is in code block format
+            detailedContent = JSON.parse(jsonMatch[1]);
+          } else {
+            // If JSON is returned directly
+            detailedContent = JSON.parse(detailedContentString);
+          }
+          
+          // Create enhanced step with detailed content
+          const enhancedStep: RoadmapStep = {
+            ...step,
+            detailedContent: detailedContent.detailedContent
+          };
+          
+          enhancedSteps.push(enhancedStep);
+          
+        } catch (error) {
+          console.error(`Error generating detailed content for step ${step.step}:`, error);
+          // If there's an error, just add the original step without detailed content
+          enhancedSteps.push(step);
+        }
+      }
+      
+      return {
+        ...basicRoadmap,
+        steps: enhancedSteps
+      };
+      
+    } catch (error) {
+      console.error('Error enhancing roadmap with details:', error);
+      // Return the original roadmap if enhancement fails
+      return basicRoadmap;
     }
   };
   

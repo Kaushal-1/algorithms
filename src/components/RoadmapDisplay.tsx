@@ -1,14 +1,31 @@
 
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { CheckCircle, ChevronDown, ChevronUp } from 'lucide-react';
+import { CheckCircle, ChevronDown, ChevronUp, Book, List } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { 
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+
+export interface DetailedContent {
+  title: string;
+  items: string[];
+}
+
+export interface ChapterContent {
+  title: string;
+  sections: DetailedContent[];
+}
 
 export interface RoadmapStep {
   step: number;
   title: string;
   description: string;
   icon: string;
+  detailedContent?: ChapterContent[]; // New field for detailed syllabus
 }
 
 export interface Roadmap {
@@ -31,9 +48,15 @@ const RoadmapDisplay: React.FC<RoadmapDisplayProps> = ({
   completedSteps
 }) => {
   const [expandedStep, setExpandedStep] = useState<number | null>(currentStep);
+  const [showDetailedView, setShowDetailedView] = useState<number | null>(null);
 
   const toggleStep = (step: number) => {
     setExpandedStep(expandedStep === step ? null : step);
+  };
+
+  const toggleDetailedView = (step: number, event: React.MouseEvent) => {
+    event.stopPropagation();
+    setShowDetailedView(showDetailedView === step ? null : step);
   };
 
   return (
@@ -52,6 +75,7 @@ const RoadmapDisplay: React.FC<RoadmapDisplayProps> = ({
           const isCompleted = completedSteps.includes(step.step);
           const isCurrent = currentStep === step.step;
           const isExpanded = expandedStep === step.step;
+          const isDetailedViewOpen = showDetailedView === step.step;
           
           return (
             <div 
@@ -88,6 +112,14 @@ const RoadmapDisplay: React.FC<RoadmapDisplayProps> = ({
                   {isCompleted && (
                     <CheckCircle className="h-5 w-5 text-green-500" />
                   )}
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="p-1"
+                    onClick={(e) => toggleDetailedView(step.step, e)}
+                  >
+                    <Book className="h-5 w-5 text-muted-foreground" />
+                  </Button>
                   {isExpanded ? (
                     <ChevronUp className="h-5 w-5 text-muted-foreground" />
                   ) : (
@@ -110,6 +142,49 @@ const RoadmapDisplay: React.FC<RoadmapDisplayProps> = ({
                       Mark as Completed
                     </Button>
                   )}
+                </div>
+              )}
+              
+              {isDetailedViewOpen && (
+                <div className="p-4 pt-0 border-t border-border/50 bg-background/40">
+                  <div className="mt-4">
+                    <h3 className="font-semibold text-lg mb-4 flex items-center">
+                      <List className="mr-2 h-5 w-5" />
+                      Detailed Syllabus for {step.title}
+                    </h3>
+                    
+                    {step.detailedContent ? (
+                      <Accordion type="single" collapsible className="w-full">
+                        {step.detailedContent.map((chapter, chapterIndex) => (
+                          <AccordionItem key={chapterIndex} value={`chapter-${chapterIndex}`}>
+                            <AccordionTrigger className="text-md font-medium">
+                              {chapter.title}
+                            </AccordionTrigger>
+                            <AccordionContent>
+                              <div className="space-y-4 pt-2">
+                                {chapter.sections.map((section, sectionIndex) => (
+                                  <div key={sectionIndex} className="pl-2">
+                                    <h5 className="font-medium text-sm mb-1">{section.title}</h5>
+                                    <ul className="list-disc pl-5 space-y-1">
+                                      {section.items.map((item, itemIndex) => (
+                                        <li key={itemIndex} className="text-sm text-muted-foreground">
+                                          {item}
+                                        </li>
+                                      ))}
+                                    </ul>
+                                  </div>
+                                ))}
+                              </div>
+                            </AccordionContent>
+                          </AccordionItem>
+                        ))}
+                      </Accordion>
+                    ) : (
+                      <p className="text-muted-foreground text-sm italic">
+                        Detailed content for this step will be available soon.
+                      </p>
+                    )}
+                  </div>
                 </div>
               )}
             </div>
