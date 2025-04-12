@@ -30,7 +30,6 @@ const StepwiseAIGuide: React.FC<StepwiseAIGuideProps> = ({
   
   const currentStepData = roadmap.steps.find(step => step.step === currentStep);
   
-  // Generate initial message when currentStep changes
   useEffect(() => {
     if (currentStepData) {
       const initialMessage: ChatMessage = {
@@ -44,7 +43,6 @@ const StepwiseAIGuide: React.FC<StepwiseAIGuideProps> = ({
     }
   }, [currentStep, currentStepData]);
   
-  // Scroll to bottom when messages change
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
@@ -154,7 +152,7 @@ const StepwiseAIGuide: React.FC<StepwiseAIGuideProps> = ({
       title,
       messages,
       roadmap.topic,
-      roadmap.experienceLevel,
+      roadmap.experience,
       roadmap.id
     );
     
