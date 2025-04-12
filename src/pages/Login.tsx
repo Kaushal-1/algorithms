@@ -1,23 +1,26 @@
 
 import React, { useState } from 'react';
-import { Link, Navigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Github, Eye, EyeOff, Mail, Lock } from 'lucide-react';
 import AuthLayout from '@/components/AuthLayout';
+import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/components/ui/use-toast';
 
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
-  const [rememberMe, setRememberMe] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   
   const { signIn, user } = useAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  // Get the path the user was trying to access
+  const from = location.state?.from || '/';
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,6 +37,7 @@ const Login = () => {
     setIsLoading(true);
     try {
       await signIn(email, password);
+      // The navigate will happen automatically via the redirect in AuthContext
     } catch (error) {
       console.error('Login error:', error);
     } finally {
@@ -41,9 +45,9 @@ const Login = () => {
     }
   };
 
-  // Redirect if already logged in
+  // Redirect if already logged in, maintaining the intended destination
   if (user) {
-    return <Navigate to="/" replace />;
+    return <Navigate to={from} replace />;
   }
 
   return (

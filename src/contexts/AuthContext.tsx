@@ -1,8 +1,7 @@
-
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useToast } from '@/components/ui/use-toast';
 
 interface AuthContextType {
@@ -23,6 +22,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [profile, setProfile] = useState<any | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
+  const location = useLocation();
   const { toast } = useToast();
 
   useEffect(() => {
@@ -38,6 +38,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setTimeout(() => {
             fetchProfile(newSession.user.id);
           }, 0);
+          
+          // If signing in, redirect to intended destination if available
+          if (event === 'SIGNED_IN') {
+            const from = location.state?.from || '/';
+            navigate(from, { replace: true });
+          }
         } else {
           setProfile(null);
         }
@@ -58,7 +64,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return () => {
       subscription.unsubscribe();
     };
-  }, []);
+  }, [navigate, location]);
 
   const fetchProfile = async (userId: string) => {
     try {
@@ -99,7 +105,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           title: "Login successful",
           description: "Welcome back!",
         });
-        navigate('/');
+        // Navigation will happen automatically in the auth state change listener
       }
     } catch (error) {
       console.error('Error in signIn:', error);

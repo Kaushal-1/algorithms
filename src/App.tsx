@@ -8,6 +8,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
 import { DSAProvider } from "./contexts/DSAContext";
 import { DSAProtectedRoute } from "./components/DSARoutesProtection";
+import ProtectedRoute from "./components/ProtectedRoute";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import Login from "./pages/Login";
@@ -40,32 +41,84 @@ const App = () => {
                   <Route path="/login" element={<Login />} />
                   <Route path="/signup" element={<SignUp />} />
                   
-                  {/* DSA Trainer routes */}
-                  <Route path="/code-review" element={<CodeReview />} />
-                  <Route path="/dsa-chat-prompt" element={<DSAChatPrompt />} />
+                  {/* Protected routes - require authentication */}
+                  <Route 
+                    path="/code-review" 
+                    element={
+                      <ProtectedRoute>
+                        <CodeReview />
+                      </ProtectedRoute>
+                    } 
+                  />
+                  <Route 
+                    path="/dsa-chat-prompt" 
+                    element={
+                      <ProtectedRoute>
+                        <DSAChatPrompt />
+                      </ProtectedRoute>
+                    } 
+                  />
                   <Route 
                     path="/dsa-problem" 
                     element={
-                      <DSAProtectedRoute requiresProblem={true}>
-                        <DSAProblem />
-                      </DSAProtectedRoute>
+                      <ProtectedRoute>
+                        <DSAProtectedRoute requiresProblem={true}>
+                          <DSAProblem />
+                        </DSAProtectedRoute>
+                      </ProtectedRoute>
                     } 
                   />
                   <Route 
                     path="/dsa-reveal-answer" 
                     element={
-                      <DSAProtectedRoute requiresProblem={true}>
-                        <DSARevealAnswer />
-                      </DSAProtectedRoute>
+                      <ProtectedRoute>
+                        <DSAProtectedRoute requiresProblem={true}>
+                          <DSARevealAnswer />
+                        </DSAProtectedRoute>
+                      </ProtectedRoute>
                     } 
                   />
-                  
-                  <Route path="/code-history" element={<CodeHistory />} />
-                  <Route path="/courses" element={<CourseListing />} />
-                  <Route path="/user-profile" element={<UserProfile />} />
-                  <Route path="/settings" element={<Settings />} />
-                  <Route path="/community" element={<Community />} />
-                  {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                  <Route 
+                    path="/code-history" 
+                    element={
+                      <ProtectedRoute>
+                        <CodeHistory />
+                      </ProtectedRoute>
+                    } 
+                  />
+                  <Route 
+                    path="/courses" 
+                    element={
+                      <ProtectedRoute>
+                        <CourseListing />
+                      </ProtectedRoute>
+                    } 
+                  />
+                  <Route 
+                    path="/user-profile" 
+                    element={
+                      <ProtectedRoute>
+                        <UserProfile />
+                      </ProtectedRoute>
+                    } 
+                  />
+                  <Route 
+                    path="/settings" 
+                    element={
+                      <ProtectedRoute>
+                        <Settings />
+                      </ProtectedRoute>
+                    } 
+                  />
+                  <Route 
+                    path="/community" 
+                    element={
+                      <ProtectedRoute>
+                        <Community />
+                      </ProtectedRoute>
+                    } 
+                  />
+                  {/* Catch-all route */}
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </TooltipProvider>
