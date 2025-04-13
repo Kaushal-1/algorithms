@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { Roadmap, RoadmapStep, ChapterContent, DetailedContent } from './RoadmapDisplay';
 import RoadmapDisplay from './RoadmapDisplay';
@@ -5,16 +6,25 @@ import ExperienceSelector from './ExperienceSelector';
 import TopicInput from './TopicInput';
 import StepwiseAIGuide from './StepwiseAIGuide';
 import { Button } from '@/components/ui/button';
-import { ChevronLeft, RotateCcw } from 'lucide-react';
+import { ChevronLeft, RotateCcw, Save, FileDown } from 'lucide-react';
+import { UserLearningProfile } from '@/types/UserProfile';
+import { jsPDF } from 'jspdf';
+import { toast } from 'sonner';
 
 type ExperienceLevel = 'beginner' | 'intermediate' | 'advanced';
 type Step = 'experience' | 'topic' | 'roadmap';
 
-const RoadmapGenerator: React.FC = () => {
+interface RoadmapGeneratorProps {
+  initialProfile?: UserLearningProfile | null;
+}
+
+const RoadmapGenerator: React.FC<RoadmapGeneratorProps> = ({ initialProfile }) => {
   // Flow state
-  const [currentStep, setCurrentStep] = useState<Step>('experience');
-  const [selectedExperience, setSelectedExperience] = useState<ExperienceLevel | null>(null);
-  const [selectedTopic, setSelectedTopic] = useState<string>('');
+  const [currentStep, setCurrentStep] = useState<Step>(initialProfile ? 'roadmap' : 'experience');
+  const [selectedExperience, setSelectedExperience] = useState<ExperienceLevel | null>(
+    initialProfile ? (initialProfile.experienceLevel === 'expert' ? 'advanced' : initialProfile.experienceLevel) as ExperienceLevel : null
+  );
+  const [selectedTopic, setSelectedTopic] = useState<string>(initialProfile?.topic || '');
   const [isGenerating, setIsGenerating] = useState(false);
   
   // Roadmap state
@@ -24,6 +34,14 @@ const RoadmapGenerator: React.FC = () => {
   
   // Groq API key
   const GROQ_API_KEY = "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";
+  
+  // Generate the roadmap automatically if an initial profile is provided
+  useEffect(() => {
+    if (initialProfile && !roadmap) {
+      const experienceLevel = initialProfile.experienceLevel === 'expert' ? 'advanced' : initialProfile.experienceLevel;
+      handleTopicSubmit(initialProfile.topic);
+    }
+  }, [initialProfile]);
   
   const handleExperienceSelect = (level: ExperienceLevel) => {
     setSelectedExperience(level);
@@ -40,13 +58,16 @@ const RoadmapGenerator: React.FC = () => {
       // After generating the basic roadmap, enhance it with detailed content
       const enhancedRoadmap = await enhanceRoadmapWithDetails(generatedRoadmap);
       
+      // Add an ID to the roadmap for reference
+      enhancedRoadmap.id = `roadmap-${Date.now()}`;
+      
       setRoadmap(enhancedRoadmap);
       setCurrentRoadmapStep(1);
       setCompletedSteps([]);
       setCurrentStep('roadmap');
     } catch (error) {
       console.error('Error generating roadmap:', error);
-      // Handle error state
+      toast.error('Error generating roadmap. Please try again.');
     } finally {
       setIsGenerating(false);
     }
@@ -293,6 +314,103 @@ Return only JSON without explanations or markdown.`;
       setCurrentStep('topic');
     }
   };
+
+  const generatePdf = () => {
+    if (!roadmap) return;
+    
+    const doc = new jsPDF();
+    let yPosition = 20;
+    
+    // Title
+    doc.setFontSize(20);
+    doc.text(`Learning Roadmap: ${roadmap.topic}`, 20, yPosition);
+    yPosition += 10;
+    
+    // Experience Level
+    doc.setFontSize(12);
+    doc.text(`Experience Level: ${roadmap.experience}`, 20, yPosition);
+    yPosition += 15;
+    
+    // Roadmap Steps
+    doc.setFontSize(16);
+    doc.text('Roadmap Steps:', 20, yPosition);
+    yPosition += 10;
+    
+    // Add each step
+    roadmap.steps.forEach((step, index) => {
+      doc.setFontSize(14);
+      doc.text(`Step ${step.step}: ${step.title}`, 20, yPosition);
+      yPosition += 7;
+      
+      doc.setFontSize(10);
+      
+      // Split description into lines to avoid overflow
+      const descriptionLines = doc.splitTextToSize(step.description, 170);
+      doc.text(descriptionLines, 25, yPosition);
+      yPosition += 10 + (descriptionLines.length - 1) * 5;
+      
+      // Add detailed content for each step if available
+      if (step.detailedContent && step.detailedContent.length > 0) {
+        doc.setFontSize(12);
+        doc.text('Detailed Content:', 25, yPosition);
+        yPosition += 7;
+        
+        step.detailedContent.forEach((chapter) => {
+          doc.setFontSize(11);
+          
+          // Check if we need a new page
+          if (yPosition > 270) {
+            doc.addPage();
+            yPosition = 20;
+          }
+          
+          doc.text(chapter.title, 30, yPosition);
+          yPosition += 7;
+          
+          chapter.sections.forEach((section) => {
+            doc.setFontSize(10);
+            
+            // Check if we need a new page
+            if (yPosition > 270) {
+              doc.addPage();
+              yPosition = 20;
+            }
+            
+            doc.text(section.title, 35, yPosition);
+            yPosition += 5;
+            
+            section.items.forEach((item) => {
+              // Check if we need a new page
+              if (yPosition > 270) {
+                doc.addPage();
+                yPosition = 20;
+              }
+              
+              doc.text(`• ${item}`, 40, yPosition);
+              yPosition += 5;
+            });
+            
+            yPosition += 2;
+          });
+          
+          yPosition += 5;
+        });
+      }
+      
+      // Add some space between steps
+      yPosition += 5;
+      
+      // Check if we need a new page for the next step
+      if (yPosition > 250 && index < roadmap.steps.length - 1) {
+        doc.addPage();
+        yPosition = 20;
+      }
+    });
+    
+    // Save the PDF
+    doc.save(`${roadmap.topic.replace(/\s+/g, '_')}_roadmap.pdf`);
+    toast.success('PDF successfully downloaded!');
+  };
   
   return (
     <div className="space-y-8">
@@ -303,7 +421,7 @@ Return only JSON without explanations or markdown.`;
         </h1>
         
         <div className="flex gap-2">
-          {currentStep !== 'experience' && (
+          {currentStep !== 'experience' && !initialProfile && (
             <Button
               variant="outline"
               size="sm"
@@ -315,15 +433,29 @@ Return only JSON without explanations or markdown.`;
             </Button>
           )}
           
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleReset}
-            className="bg-card/40 border-border/50 hover:bg-card/60"
-          >
-            <RotateCcw className="h-4 w-4 mr-2" />
-            Start Over
-          </Button>
+          {roadmap && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={generatePdf}
+              className="bg-card/40 border-border/50 hover:bg-card/60"
+            >
+              <FileDown className="h-4 w-4 mr-2" />
+              Download PDF
+            </Button>
+          )}
+          
+          {!initialProfile && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleReset}
+              className="bg-card/40 border-border/50 hover:bg-card/60"
+            >
+              <RotateCcw className="h-4 w-4 mr-2" />
+              Start Over
+            </Button>
+          )}
         </div>
       </div>
       

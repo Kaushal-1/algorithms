@@ -2,10 +2,11 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Send, Loader } from 'lucide-react';
+import { Send, Loader, Save } from 'lucide-react';
 import AIChatMessage from '@/components/AIChatMessage';
 import { cn } from '@/lib/utils';
 import { Roadmap, RoadmapStep } from './RoadmapDisplay';
+import { toast } from 'sonner';
 
 interface ChatMessage {
   id: string;
@@ -141,17 +142,62 @@ const StepwiseAIGuide: React.FC<StepwiseAIGuideProps> = ({
       isCode: aiResponse.includes('```')
     };
   };
+
+  const saveSession = () => {
+    try {
+      // Create a session object
+      const session = {
+        id: `session-${Date.now()}`,
+        title: `${roadmap.topic} - Step ${currentStep}: ${currentStepData?.title || 'Learning'}`,
+        roadmapId: roadmap.id,
+        experience: roadmap.experience,
+        topic: roadmap.topic,
+        messages: messages,
+        createdAt: new Date(),
+      };
+      
+      // Get existing sessions from localStorage
+      const existingSessions = JSON.parse(localStorage.getItem('chatSessions') || '[]');
+      
+      // Add new session
+      const updatedSessions = [session, ...existingSessions];
+      
+      // Save to localStorage
+      localStorage.setItem('chatSessions', JSON.stringify(updatedSessions));
+      
+      toast.success('Chat session saved successfully!');
+    } catch (error) {
+      console.error('Error saving chat session:', error);
+      toast.error('Failed to save chat session');
+    }
+  };
   
   return (
     <div className="space-y-4">
+      <div className="flex justify-between items-center">
+        <h2 className="font-medium text-lg flex items-center">
+          <span className="text-xl mr-2" role="img" aria-label="Current step icon">
+            {currentStepData?.icon || "🧠"}
+          </span>
+          {currentStepData?.title || "Learning Guide"}
+        </h2>
+        
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={saveSession}
+          className="bg-card/40 border-border/50 hover:bg-card/60"
+        >
+          <Save className="h-4 w-4 mr-2" />
+          Save Session
+        </Button>
+      </div>
+      
       <div className="bg-card/40 backdrop-blur-sm border border-border/50 rounded-xl overflow-hidden shadow-xl h-[350px] flex flex-col">
         <div className="p-4 border-b border-border/50 bg-muted/30">
-          <h2 className="font-medium text-lg flex items-center">
-            <span className="text-xl mr-2" role="img" aria-label="Current step icon">
-              {currentStepData?.icon || "🧠"}
-            </span>
-            {currentStepData?.title || "Learning Guide"}
-          </h2>
+          <p className="text-sm text-muted-foreground">
+            {roadmap.topic} • {roadmap.experience} level • Step {currentStep} of {roadmap.steps.length}
+          </p>
         </div>
         
         {/* Messages Container */}
