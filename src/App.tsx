@@ -44,6 +44,7 @@ const App = () => {
                     <Route path="/login" element={<Login />} />
                     <Route path="/signup" element={<SignUp />} />
                     <Route path="/personalized-learning" element={<PersonalizedLearning />} />
+                    <Route path="/courses" element={<CourseListing />} />
                     
                     {/* Protected routes - require authentication */}
                     <Route 
@@ -87,14 +88,6 @@ const App = () => {
                       element={
                         <ProtectedRoute>
                           <CodeHistory />
-                        </ProtectedRoute>
-                      } 
-                    />
-                    <Route 
-                      path="/courses" 
-                      element={
-                        <ProtectedRoute>
-                          <CourseListing />
                         </ProtectedRoute>
                       } 
                     />

@@ -2,6 +2,9 @@
 import React from 'react';
 import Navbar from '@/components/Navbar';
 import LearningFlowContainer from '@/components/learning-flow/LearningFlowContainer';
+import { Link } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { ChevronLeft } from 'lucide-react';
 
 const PersonalizedLearning: React.FC = () => {
   return (
@@ -10,6 +13,17 @@ const PersonalizedLearning: React.FC = () => {
       
       <div className="pt-20 px-4 md:px-8 pb-16">
         <div className="max-w-7xl mx-auto">
+          <div className="mb-6 flex justify-between items-center">
+            <h1 className="text-2xl font-bold">Personalized Learning Path</h1>
+            
+            <Link to="/courses">
+              <Button variant="ghost" size="sm">
+                <ChevronLeft className="mr-1 h-4 w-4" />
+                Back to Learning Paths
+              </Button>
+            </Link>
+          </div>
+          
           <div className="grid grid-cols-1 relative">
             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[500px] bg-gradient-to-b from-primary/20 to-transparent rounded-full blur-[120px] opacity-30 z-0"></div>
             

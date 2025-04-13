@@ -1,10 +1,14 @@
+
 import React, { useEffect, useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { ArrowRight, MessageSquare, CheckCircle2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Link } from "react-router-dom";
+
 const HeroSection = () => {
   const [typingComplete, setTypingComplete] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
+  
   useEffect(() => {
     // Simulate the typing effect completion
     const timer = setTimeout(() => {
@@ -15,11 +19,13 @@ const HeroSection = () => {
     const stepInterval = setInterval(() => {
       setCurrentStep(prev => (prev + 1) % 3);
     }, 3000);
+    
     return () => {
       clearTimeout(timer);
       clearInterval(stepInterval);
     };
   }, []);
+  
   const codeExample = `function reverseString(str) {
   // Convert string to array
   let arr = str.split('');
@@ -30,6 +36,7 @@ const HeroSection = () => {
   // Join array back to string
   return arr.join('');
 }`;
+  
   const aiFeedback = [{
     id: 0,
     text: "Your function works, but could be more concise. Consider chaining methods:",
@@ -43,6 +50,7 @@ const HeroSection = () => {
     text: "For Unicode characters, consider using spread operator:",
     code: "return [...str].reverse().join('');"
   }];
+  
   return <section className="pt-32 pb-20 px-4 md:px-8 overflow-hidden relative">
       <div className="max-w-7xl mx-auto">
         <div className="flex flex-col lg:flex-row items-center justify-between gap-12">
@@ -57,13 +65,18 @@ const HeroSection = () => {
               ALGORITHMS helps you write better code, spot errors faster, and improve over time — all with the power of AI.
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
-              <Button className="flex items-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground px-6 py-6 text-lg">
-                Start Reviewing Your Code
-                <ArrowRight size={18} />
-              </Button>
-              <Button variant="outline" className="flex items-center gap-2 border-primary text-primary hover:text-primary-foreground hover:bg-primary/20 px-6 py-6 text-lg">
-                Join the Community
-              </Button>
+              <Link to="/code-review">
+                <Button className="flex items-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground px-6 py-6 text-lg">
+                  Start Reviewing Your Code
+                  <ArrowRight size={18} />
+                </Button>
+              </Link>
+              <Link to="/personalized-learning">
+                <Button variant="outline" className="flex items-center gap-2 border-primary text-primary hover:text-primary-foreground hover:bg-primary/20 px-6 py-6 text-lg">
+                  Try Personalized Learning
+                  <ArrowRight size={18} />
+                </Button>
+              </Link>
             </div>
           </div>
           
@@ -130,4 +143,5 @@ const HeroSection = () => {
       <div className="absolute bottom-0 -right-96 w-[500px] h-[500px] bg-secondary/20 rounded-full filter blur-3xl opacity-20"></div>
     </section>;
 };
+
 export default HeroSection;
