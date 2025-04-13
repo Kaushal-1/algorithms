@@ -12,14 +12,14 @@ const PersonalizedLearning: React.FC = () => {
       <Navbar />
       
       <div className="pt-20 px-4 md:px-8 pb-16">
-        <div className="max-w-7xl mx-auto">
+        <div className="max-w-6xl mx-auto">
           <div className="mb-6 flex justify-between items-center">
             <h1 className="text-2xl font-bold">Personalized Learning Path</h1>
             
-            <Link to="/courses">
+            <Link to="/">
               <Button variant="ghost" size="sm">
                 <ChevronLeft className="mr-1 h-4 w-4" />
-                Back to Learning Paths
+                Back to Home
               </Button>
             </Link>
           </div>

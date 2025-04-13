@@ -65,15 +65,15 @@ const HeroSection = () => {
               ALGORITHMS helps you write better code, spot errors faster, and improve over time — all with the power of AI.
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
-              <Link to="/code-review">
+              <Link to="/personalized-learning">
                 <Button className="flex items-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground px-6 py-6 text-lg">
-                  Start Reviewing Your Code
+                  Get Personalized Learning Path
                   <ArrowRight size={18} />
                 </Button>
               </Link>
-              <Link to="/personalized-learning">
+              <Link to="/code-review">
                 <Button variant="outline" className="flex items-center gap-2 border-primary text-primary hover:text-primary-foreground hover:bg-primary/20 px-6 py-6 text-lg">
-                  Try Personalized Learning
+                  Start Reviewing Your Code
                   <ArrowRight size={18} />
                 </Button>
               </Link>
