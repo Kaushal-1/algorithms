@@ -1,21 +1,21 @@
 
 import React, { useState } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Roadmap } from '@/components/RoadmapDisplay';
-import { ChevronRight, ChevronDown, Menu, X } from 'lucide-react';
+import { Menu, X } from 'lucide-react';
+import LearningSessionSidebarTopic from './LearningSessionSidebarTopic';
 
 interface LearningSessionSidebarProps {
   roadmap: Roadmap;
   selectedTopic: string | null;
-  onSelectTopic: (topicId: string) => void;
+  onSelectTopic: (topicId: string, subtopic?: string) => void;
 }
 
-const LearningSessionSidebar: React.FC<LearningSessionSidebarProps> = ({ 
-  roadmap, 
-  selectedTopic, 
-  onSelectTopic 
+const LearningSessionSidebar: React.FC<LearningSessionSidebarProps> = ({
+  roadmap,
+  selectedTopic,
+  onSelectTopic
 }) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
   
@@ -71,35 +71,14 @@ const LearningSessionSidebar: React.FC<LearningSessionSidebarProps> = ({
       
       <ScrollArea className="flex-grow">
         <div className="p-2">
-          {roadmap.steps.map((step) => {
-            const isSelected = selectedTopic === step.step.toString();
-            return (
-              <div
-                key={step.step}
-                className={cn(
-                  "mb-1 rounded-md",
-                  isSelected ? "bg-primary/20" : "hover:bg-muted"
-                )}
-              >
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className={cn(
-                    "w-full justify-start p-2 h-auto text-left font-normal",
-                    isSelected && "text-primary font-medium"
-                  )}
-                  onClick={() => onSelectTopic(step.step.toString())}
-                >
-                  <div className="flex items-center w-full">
-                    <div className="mr-2 flex-shrink-0 w-6 h-6 flex items-center justify-center rounded-full bg-muted">
-                      {step.step}
-                    </div>
-                    <span className="truncate">{step.title}</span>
-                  </div>
-                </Button>
-              </div>
-            );
-          })}
+          {roadmap.steps.map((step) => (
+            <LearningSessionSidebarTopic
+              key={step.step}
+              step={step}
+              isSelected={selectedTopic === step.step.toString()}
+              onSelect={onSelectTopic}
+            />
+          ))}
         </div>
       </ScrollArea>
     </div>
