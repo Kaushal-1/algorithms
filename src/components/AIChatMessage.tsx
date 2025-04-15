@@ -3,6 +3,7 @@ import React from 'react';
 import { cn } from '@/lib/utils';
 import { Bot, User } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 
 interface ChatMessage {
   id: string;
@@ -27,15 +28,21 @@ const AIChatMessage: React.FC<AIChatMessageProps> = ({ message }) => {
       )}
     >
       {isAssistant && (
-        <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
-          <Bot className="h-4 w-4 text-primary" />
-        </div>
+        <Avatar className="w-8 h-8">
+          <AvatarImage 
+            src="/lovable-uploads/919aa0d0-677d-46b3-b40b-99ed5a73f051.png" 
+            alt="AI Guru Avatar" 
+          />
+          <AvatarFallback>
+            <Bot className="h-4 w-4 text-primary" />
+          </AvatarFallback>
+        </Avatar>
       )}
       
       <div className="flex-1 overflow-hidden">
         <div className="flex items-center mb-1">
           <span className="font-medium text-sm">
-            {isAssistant ? "AI Tutor" : "You"}
+            {isAssistant ? "AI Guru" : "You"}
           </span>
           <span className="text-xs text-muted-foreground ml-2">
             {new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
