@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { Roadmap, RoadmapStep, ChapterContent, DetailedContent } from './RoadmapDisplay';
 import RoadmapDisplay from './RoadmapDisplay';
@@ -125,15 +124,25 @@ Assign a relevant emoji icon for each step (used in UI rendering).`;
       const roadmapString = data.choices[0].message.content;
       
       // Extract JSON from the response
-      let jsonMatch = roadmapString.match(/```json\n([\s\S]*?)\n```/);
       let roadmapJson: Roadmap;
       
-      if (jsonMatch && jsonMatch[1]) {
-        // If JSON is in code block format
-        roadmapJson = JSON.parse(jsonMatch[1]);
-      } else {
-        // If JSON is returned directly
+      try {
+        // Try parsing the response directly first
         roadmapJson = JSON.parse(roadmapString);
+      } catch (parseError) {
+        // If direct parsing fails, try to extract JSON from code blocks
+        const jsonMatch = roadmapString.match(/```(?:json)?\n([\s\S]*?)\n```/);
+        if (jsonMatch && jsonMatch[1]) {
+          try {
+            roadmapJson = JSON.parse(jsonMatch[1]);
+          } catch (nestedError) {
+            console.error('Failed to parse JSON from code block:', nestedError);
+            throw new Error('Invalid JSON format in response');
+          }
+        } else {
+          console.error('Failed to parse roadmap JSON:', parseError);
+          throw new Error('Invalid JSON format in response');
+        }
       }
       
       return roadmapJson;
@@ -250,30 +259,45 @@ Return only JSON without explanations or markdown.`;
           const data = await response.json();
           const detailedContentString = data.choices[0].message.content;
           
-          // Extract JSON from the response
-          let jsonMatch = detailedContentString.match(/```json\n([\s\S]*?)\n```/);
-          let detailedContent: { detailedContent: ChapterContent[] };
+          // Extract JSON from the response with better error handling
+          let detailedContent: { detailedContent: ChapterContent[] } | null = null;
           
-          if (jsonMatch && jsonMatch[1]) {
-            // If JSON is in code block format
-            detailedContent = JSON.parse(jsonMatch[1]);
-          } else {
-            // If JSON is returned directly
+          try {
+            // Try direct parsing first
             detailedContent = JSON.parse(detailedContentString);
+          } catch (parseError) {
+            // If direct parsing fails, try to extract JSON from code blocks
+            const jsonMatch = detailedContentString.match(/```(?:json)?\n([\s\S]*?)\n```/);
+            if (jsonMatch && jsonMatch[1]) {
+              try {
+                detailedContent = JSON.parse(jsonMatch[1]);
+              } catch (nestedError) {
+                console.error(`Failed to parse JSON from code block for step ${step.step}:`, nestedError);
+                // Instead of throwing, create a fallback structure
+                detailedContent = createFallbackDetailedContent(step);
+              }
+            } else {
+              console.error(`Failed to parse detailed content JSON for step ${step.step}:`, parseError);
+              // Create fallback structure
+              detailedContent = createFallbackDetailedContent(step);
+            }
           }
           
           // Create enhanced step with detailed content
           const enhancedStep: RoadmapStep = {
             ...step,
-            detailedContent: detailedContent.detailedContent
+            detailedContent: detailedContent?.detailedContent || createFallbackDetailedContent(step).detailedContent
           };
           
           enhancedSteps.push(enhancedStep);
           
         } catch (error) {
           console.error(`Error generating detailed content for step ${step.step}:`, error);
-          // If there's an error, just add the original step without detailed content
-          enhancedSteps.push(step);
+          // If there's an error, add a step with fallback detailed content
+          enhancedSteps.push({
+            ...step,
+            detailedContent: createFallbackDetailedContent(step).detailedContent
+          });
         }
       }
       
@@ -287,6 +311,39 @@ Return only JSON without explanations or markdown.`;
       // Return the original roadmap if enhancement fails
       return basicRoadmap;
     }
+  };
+  
+  const createFallbackDetailedContent = (step: RoadmapStep): { detailedContent: ChapterContent[] } => {
+    return {
+      detailedContent: [
+        {
+          title: `Chapter 1: ${step.title} Fundamentals`,
+          sections: [
+            {
+              title: "Key Concepts",
+              items: ["Basic principles", "Core terminology", "Foundational elements"]
+            },
+            {
+              title: "Learning Resources",
+              items: ["Recommended books", "Online tutorials", "Practice exercises"]
+            }
+          ]
+        },
+        {
+          title: `Chapter 2: Applying ${step.title}`,
+          sections: [
+            {
+              title: "Practical Applications",
+              items: ["Real-world examples", "Common use cases", "Implementation strategies"]
+            },
+            {
+              title: "Advanced Topics",
+              items: ["Specialized techniques", "Optimization methods", "Best practices"]
+            }
+          ]
+        }
+      ]
+    };
   };
   
   const handleStepComplete = (step: number) => {

@@ -44,7 +44,8 @@ const App = () => {
                     <Route path="/login" element={<Login />} />
                     <Route path="/signup" element={<SignUp />} />
                     <Route path="/personalized-learning" element={<PersonalizedLearning />} />
-                    <Route path="/courses" element={<CourseListing />} />
+                    {/* Redirect /courses to /personalized-learning */}
+                    <Route path="/courses" element={<Navigate to="/personalized-learning" replace />} />
                     
                     {/* Protected routes - require authentication */}
                     <Route 
