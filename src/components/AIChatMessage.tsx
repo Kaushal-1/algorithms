@@ -53,14 +53,20 @@ const AIChatMessage: React.FC<AIChatMessageProps> = ({ message }) => {
               ul: ({node, ...props}) => <ul className="list-disc pl-4 mb-2" {...props} />,
               ol: ({node, ...props}) => <ol className="list-decimal pl-4 mb-2" {...props} />,
               li: ({node, ...props}) => <li className="mb-1" {...props} />,
-              code: ({node, inline, ...props}) => 
-                inline ? (
-                  <code className="bg-muted px-1 py-0.5 rounded text-sm" {...props} />
+              code: ({node, className, children, ...props}) => {
+                const match = /language-(\w+)/.exec(className || '');
+                return !className ? (
+                  <code className="bg-muted px-1 py-0.5 rounded text-sm" {...props}>
+                    {children}
+                  </code>
                 ) : (
                   <pre className="p-3 bg-muted rounded-md my-2 overflow-x-auto">
-                    <code className="text-sm font-mono" {...props} />
+                    <code className="text-sm font-mono" {...props}>
+                      {children}
+                    </code>
                   </pre>
-                ),
+                );
+              },
             }}
           >
             {message.content}

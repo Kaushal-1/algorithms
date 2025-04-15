@@ -9,9 +9,8 @@ import { ChevronLeft, RotateCcw, Save, FileDown } from 'lucide-react';
 import { UserLearningProfile } from '@/types/UserProfile';
 import { jsPDF } from 'jspdf';
 import { toast } from 'sonner';
-
-type ExperienceLevel = 'beginner' | 'intermediate' | 'advanced';
-type Step = 'experience' | 'topic' | 'roadmap';
+import { EXPERIENCE_STEP, TOPIC_STEP, ROADMAP_STEP } from '@/types/StepTypes';
+import type { ExperienceLevel, Step } from '@/types/StepTypes';
 
 interface RoadmapGeneratorProps {
   initialProfile?: UserLearningProfile | null;
@@ -19,7 +18,7 @@ interface RoadmapGeneratorProps {
 
 const RoadmapGenerator: React.FC<RoadmapGeneratorProps> = ({ initialProfile }) => {
   // Flow state
-  const [currentStep, setCurrentStep] = useState<Step>(initialProfile ? 'roadmap' : 'experience');
+  const [currentStep, setCurrentStep] = useState<Step>(initialProfile ? ROADMAP_STEP : EXPERIENCE_STEP);
   const [selectedExperience, setSelectedExperience] = useState<ExperienceLevel | null>(
     initialProfile ? (initialProfile.experienceLevel === 'expert' ? 'advanced' : initialProfile.experienceLevel) as ExperienceLevel : null
   );
@@ -44,7 +43,7 @@ const RoadmapGenerator: React.FC<RoadmapGeneratorProps> = ({ initialProfile }) =
   
   const handleExperienceSelect = (level: ExperienceLevel) => {
     setSelectedExperience(level);
-    setCurrentStep('topic');
+    setCurrentStep(TOPIC_STEP);
   };
   
   const handleTopicSubmit = async (topic: string) => {
@@ -66,7 +65,7 @@ const RoadmapGenerator: React.FC<RoadmapGeneratorProps> = ({ initialProfile }) =
       setRoadmap(enhancedRoadmap);
       setCurrentRoadmapStep(1);
       setCompletedSteps([]);
-      setCurrentStep('roadmap');
+      setCurrentStep(ROADMAP_STEP);
     } catch (error) {
       console.error('Error generating roadmap:', error);
       toast.error('Error generating roadmap. Please try again.');
@@ -360,7 +359,7 @@ Return only JSON without explanations or markdown.`;
   };
   
   const handleReset = () => {
-    setCurrentStep('experience');
+    setCurrentStep(EXPERIENCE_STEP);
     setSelectedExperience(null);
     setSelectedTopic('');
     setRoadmap(null);
@@ -368,10 +367,10 @@ Return only JSON without explanations or markdown.`;
   };
   
   const handleBack = () => {
-    if (currentStep === 'topic') {
-      setCurrentStep('experience');
-    } else if (currentStep === 'roadmap') {
-      setCurrentStep('topic');
+    if (currentStep === TOPIC_STEP) {
+      setCurrentStep(EXPERIENCE_STEP);
+    } else if (currentStep === ROADMAP_STEP) {
+      setCurrentStep(TOPIC_STEP);
     }
   };
 
@@ -477,7 +476,7 @@ Return only JSON without explanations or markdown.`;
     window.location.href = '/learning-session/1';
   };
   
-  if (currentStep === 'roadmap' && roadmap) {
+  if (currentStep === ROADMAP_STEP && roadmap) {
     return (
       <div className="space-y-8">
         {/* Header with navigation */}
@@ -487,7 +486,7 @@ Return only JSON without explanations or markdown.`;
           </h1>
           
           <div className="flex gap-2">
-            {currentStep !== 'experience' && !initialProfile && (
+            {currentStep !== EXPERIENCE_STEP && !initialProfile && (
               <Button
                 variant="outline"
                 size="sm"
@@ -525,24 +524,8 @@ Return only JSON without explanations or markdown.`;
           </div>
         </div>
         
-        {/* Step 1: Experience Selection */}
-        {currentStep === 'experience' && (
-          <ExperienceSelector
-            selectedLevel={selectedExperience}
-            onSelect={handleExperienceSelect}
-          />
-        )}
-        
-        {/* Step 2: Topic Input */}
-        {currentStep === 'topic' && (
-          <TopicInput
-            onSubmit={handleTopicSubmit}
-            isLoading={isGenerating}
-          />
-        )}
-        
         {/* Roadmap Display */}
-        {currentStep === 'roadmap' && roadmap && (
+        {currentStep === ROADMAP_STEP && roadmap && (
           <div className="space-y-8">
             <RoadmapDisplay
               roadmap={roadmap}
@@ -575,7 +558,7 @@ Return only JSON without explanations or markdown.`;
         </h1>
         
         <div className="flex gap-2">
-          {currentStep !== 'experience' && !initialProfile && (
+          {currentStep !== EXPERIENCE_STEP && !initialProfile && (
             <Button
               variant="outline"
               size="sm"
@@ -614,7 +597,7 @@ Return only JSON without explanations or markdown.`;
       </div>
       
       {/* Step 1: Experience Selection */}
-      {currentStep === 'experience' && (
+      {currentStep === EXPERIENCE_STEP && (
         <ExperienceSelector
           selectedLevel={selectedExperience}
           onSelect={handleExperienceSelect}
@@ -622,7 +605,7 @@ Return only JSON without explanations or markdown.`;
       )}
       
       {/* Step 2: Topic Input */}
-      {currentStep === 'topic' && (
+      {currentStep === TOPIC_STEP && (
         <TopicInput
           onSubmit={handleTopicSubmit}
           isLoading={isGenerating}
@@ -630,7 +613,7 @@ Return only JSON without explanations or markdown.`;
       )}
       
       {/* Step 3 & 4: Roadmap Display and Interactive Guide */}
-      {currentStep === 'roadmap' && roadmap && (
+      {currentStep === ROADMAP_STEP && roadmap && (
         <div className="space-y-8">
           <RoadmapDisplay
             roadmap={roadmap}
