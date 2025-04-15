@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -23,6 +24,7 @@ import UserProfile from "./pages/UserProfile";
 import Settings from "./pages/Settings";
 import Community from "./pages/Community";
 import PersonalizedLearning from "./pages/PersonalizedLearning";
+import LearningSession from "./pages/LearningSession";
 
 // Initialize QueryClient outside of the component to avoid recreation on renders
 const queryClient = new QueryClient();
@@ -49,6 +51,24 @@ const App = () => {
                       element={
                         <ProtectedRoute>
                           <PersonalizedLearning />
+                        </ProtectedRoute>
+                      } 
+                    />
+                    
+                    {/* Add learning session route */}
+                    <Route 
+                      path="/learning-session" 
+                      element={
+                        <ProtectedRoute>
+                          <LearningSession />
+                        </ProtectedRoute>
+                      } 
+                    />
+                    <Route 
+                      path="/learning-session/:topicId" 
+                      element={
+                        <ProtectedRoute>
+                          <LearningSession />
                         </ProtectedRoute>
                       } 
                     />

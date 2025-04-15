@@ -60,6 +60,9 @@ const RoadmapGenerator: React.FC<RoadmapGeneratorProps> = ({ initialProfile }) =
       // Add an ID to the roadmap for reference
       enhancedRoadmap.id = `roadmap-${Date.now()}`;
       
+      // Save the roadmap to localStorage for use in learning sessions
+      localStorage.setItem('currentRoadmap', JSON.stringify(enhancedRoadmap));
+      
       setRoadmap(enhancedRoadmap);
       setCurrentRoadmapStep(1);
       setCompletedSteps([]);
@@ -468,6 +471,100 @@ Return only JSON without explanations or markdown.`;
     doc.save(`${roadmap.topic.replace(/\s+/g, '_')}_roadmap.pdf`);
     toast.success('PDF successfully downloaded!');
   };
+  
+  const startLearningSession = () => {
+    // Navigate to the first topic in the learning session
+    window.location.href = '/learning-session/1';
+  };
+  
+  if (currentStep === 'roadmap' && roadmap) {
+    return (
+      <div className="space-y-8">
+        {/* Header with navigation */}
+        <div className="flex justify-between items-center">
+          <h1 className="text-2xl font-bold text-white font-heading">
+            AI Learning Roadmap <span className="text-primary">.</span>
+          </h1>
+          
+          <div className="flex gap-2">
+            {currentStep !== 'experience' && !initialProfile && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleBack}
+                className="bg-card/40 border-border/50 hover:bg-card/60"
+              >
+                <ChevronLeft className="h-4 w-4 mr-2" />
+                Back
+              </Button>
+            )}
+            
+            {roadmap && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={generatePdf}
+                className="bg-card/40 border-border/50 hover:bg-card/60"
+              >
+                <FileDown className="h-4 w-4 mr-2" />
+                Download PDF
+              </Button>
+            )}
+            
+            {!initialProfile && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleReset}
+                className="bg-card/40 border-border/50 hover:bg-card/60"
+              >
+                <RotateCcw className="h-4 w-4 mr-2" />
+                Start Over
+              </Button>
+            )}
+          </div>
+        </div>
+        
+        {/* Step 1: Experience Selection */}
+        {currentStep === 'experience' && (
+          <ExperienceSelector
+            selectedLevel={selectedExperience}
+            onSelect={handleExperienceSelect}
+          />
+        )}
+        
+        {/* Step 2: Topic Input */}
+        {currentStep === 'topic' && (
+          <TopicInput
+            onSubmit={handleTopicSubmit}
+            isLoading={isGenerating}
+          />
+        )}
+        
+        {/* Roadmap Display */}
+        {currentStep === 'roadmap' && roadmap && (
+          <div className="space-y-8">
+            <RoadmapDisplay
+              roadmap={roadmap}
+              currentStep={currentRoadmapStep}
+              onStepComplete={handleStepComplete}
+              completedSteps={completedSteps}
+            />
+            
+            <div className="flex justify-center mt-8">
+              <Button
+                size="lg"
+                onClick={startLearningSession}
+                className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white px-8"
+              >
+                Start Learning with AI Tutor
+              </Button>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
   
   return (
     <div className="space-y-8">
