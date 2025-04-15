@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { MessageSquare, Code, PenTool } from 'lucide-react';
+import { MessageSquare } from 'lucide-react';
 
 const CodeReview: React.FC = () => {
   const navigate = useNavigate();
@@ -19,8 +19,8 @@ const CodeReview: React.FC = () => {
           <p className="text-muted-foreground">Improve your coding skills with our AI-powered DSA training platform</p>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <Card className="border-border bg-card/50 backdrop-blur-sm hover:border-primary/50 transition-all duration-300">
+        <div className="grid place-items-center">
+          <Card className="border-border bg-card/50 backdrop-blur-sm hover:border-primary/50 transition-all duration-300 max-w-md w-full">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <MessageSquare className="h-5 w-5 text-primary" />
@@ -34,42 +34,6 @@ const CodeReview: React.FC = () => {
                 onClick={() => navigate('/dsa-chat-prompt')}
               >
                 Start Practicing
-              </Button>
-            </CardContent>
-          </Card>
-          
-          <Card className="border-border bg-card/50 backdrop-blur-sm hover:border-primary/50 transition-all duration-300">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Code className="h-5 w-5 text-primary" />
-                Code Review
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground mb-6">Submit your existing code for a comprehensive review, including optimization tips and suggestions.</p>
-              <Button 
-                variant="outline" 
-                className="w-full border-primary text-primary hover:bg-primary/10"
-              >
-                Submit Code
-              </Button>
-            </CardContent>
-          </Card>
-          
-          <Card className="border-border bg-card/50 backdrop-blur-sm hover:border-primary/50 transition-all duration-300">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <PenTool className="h-5 w-5 text-primary" />
-                Learning Resources
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground mb-6">Access comprehensive learning materials on common DSA topics, patterns, and techniques.</p>
-              <Button 
-                variant="outline" 
-                className="w-full border-primary text-primary hover:bg-primary/10"
-              >
-                Explore Resources
               </Button>
             </CardContent>
           </Card>

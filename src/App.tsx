@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -43,19 +42,22 @@ const App = () => {
                     <Route path="/" element={<Index />} />
                     <Route path="/login" element={<Login />} />
                     <Route path="/signup" element={<SignUp />} />
-                    <Route path="/personalized-learning" element={<PersonalizedLearning />} />
-                    {/* Redirect /courses to /personalized-learning */}
-                    <Route path="/courses" element={<Navigate to="/personalized-learning" replace />} />
                     
-                    {/* Protected routes - require authentication */}
+                    {/* Protect personalized-learning route */}
                     <Route 
-                      path="/code-review" 
+                      path="/personalized-learning" 
                       element={
                         <ProtectedRoute>
-                          <CodeReview />
+                          <PersonalizedLearning />
                         </ProtectedRoute>
                       } 
                     />
+                    
+                    {/* Redirect /code-review to /dsa-chat-prompt */}
+                    <Route path="/code-review" element={<Navigate to="/dsa-chat-prompt" replace />} />
+                    <Route path="/courses" element={<Navigate to="/personalized-learning" replace />} />
+                    
+                    {/* Protected routes - require authentication */}
                     <Route 
                       path="/dsa-chat-prompt" 
                       element={
@@ -116,6 +118,7 @@ const App = () => {
                         </ProtectedRoute>
                       } 
                     />
+                    
                     {/* Catch-all route */}
                     <Route path="*" element={<NotFound />} />
                   </Routes>
