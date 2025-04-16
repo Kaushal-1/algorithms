@@ -540,7 +540,7 @@ Return only JSON without explanations or markdown.`;
                 onClick={startLearningSession}
                 className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white px-8"
               >
-                Start Learning with AI Tutor
+                Start Learning with AI Guru
               </Button>
             </div>
           </div>
