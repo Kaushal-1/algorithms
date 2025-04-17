@@ -17,7 +17,6 @@ interface RoadmapGeneratorProps {
 }
 
 const RoadmapGenerator: React.FC<RoadmapGeneratorProps> = ({ initialProfile }) => {
-  // Flow state
   const [currentStep, setCurrentStep] = useState<Step>(initialProfile ? ROADMAP_STEP : EXPERIENCE_STEP);
   const [selectedExperience, setSelectedExperience] = useState<ExperienceLevel | null>(
     initialProfile ? (initialProfile.experienceLevel === 'expert' ? 'advanced' : initialProfile.experienceLevel) as ExperienceLevel : null
@@ -25,15 +24,12 @@ const RoadmapGenerator: React.FC<RoadmapGeneratorProps> = ({ initialProfile }) =
   const [selectedTopic, setSelectedTopic] = useState<string>(initialProfile?.topic || '');
   const [isGenerating, setIsGenerating] = useState(false);
   
-  // Roadmap state
   const [roadmap, setRoadmap] = useState<Roadmap | null>(null);
   const [currentRoadmapStep, setCurrentRoadmapStep] = useState<number>(1);
   const [completedSteps, setCompletedSteps] = useState<number[]>([]);
   
-  // Groq API key
   const GROQ_API_KEY = "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";
   
-  // Generate the roadmap automatically if an initial profile is provided
   useEffect(() => {
     if (initialProfile && !roadmap) {
       const experienceLevel = initialProfile.experienceLevel === 'expert' ? 'advanced' : initialProfile.experienceLevel;
@@ -53,13 +49,10 @@ const RoadmapGenerator: React.FC<RoadmapGeneratorProps> = ({ initialProfile }) =
     try {
       const generatedRoadmap = await generateRoadmap(selectedExperience as ExperienceLevel, topic);
       
-      // After generating the basic roadmap, enhance it with detailed content
       const enhancedRoadmap = await enhanceRoadmapWithDetails(generatedRoadmap);
       
-      // Add an ID to the roadmap for reference
       enhancedRoadmap.id = `roadmap-${Date.now()}`;
       
-      // Save the roadmap to localStorage for use in learning sessions
       localStorage.setItem('currentRoadmap', JSON.stringify(enhancedRoadmap));
       
       setRoadmap(enhancedRoadmap);
@@ -125,14 +118,11 @@ Assign a relevant emoji icon for each step (used in UI rendering).`;
       const data = await response.json();
       const roadmapString = data.choices[0].message.content;
       
-      // Extract JSON from the response
       let roadmapJson: Roadmap;
       
       try {
-        // Try parsing the response directly first
         roadmapJson = JSON.parse(roadmapString);
       } catch (parseError) {
-        // If direct parsing fails, try to extract JSON from code blocks
         const jsonMatch = roadmapString.match(/```(?:json)?\n([\s\S]*?)\n```/);
         if (jsonMatch && jsonMatch[1]) {
           try {
@@ -151,7 +141,6 @@ Assign a relevant emoji icon for each step (used in UI rendering).`;
       
     } catch (error) {
       console.error('Error generating roadmap:', error);
-      // Fallback to a simple roadmap if API fails
       return {
         experience: experience,
         topic: topic,
@@ -230,7 +219,6 @@ Create 2-4 chapters per step, with 2-3 sections per chapter, and 3-5 items per s
 Focus on specific, actionable learning items.
 Return only JSON without explanations or markdown.`;
 
-      // Create enhanced steps with detailed content
       const enhancedSteps: RoadmapStep[] = [];
       
       for (const step of basicRoadmap.steps) {
@@ -261,31 +249,25 @@ Return only JSON without explanations or markdown.`;
           const data = await response.json();
           const detailedContentString = data.choices[0].message.content;
           
-          // Extract JSON from the response with better error handling
           let detailedContent: { detailedContent: ChapterContent[] } | null = null;
           
           try {
-            // Try direct parsing first
             detailedContent = JSON.parse(detailedContentString);
           } catch (parseError) {
-            // If direct parsing fails, try to extract JSON from code blocks
             const jsonMatch = detailedContentString.match(/```(?:json)?\n([\s\S]*?)\n```/);
             if (jsonMatch && jsonMatch[1]) {
               try {
                 detailedContent = JSON.parse(jsonMatch[1]);
               } catch (nestedError) {
                 console.error(`Failed to parse JSON from code block for step ${step.step}:`, nestedError);
-                // Instead of throwing, create a fallback structure
                 detailedContent = createFallbackDetailedContent(step);
               }
             } else {
               console.error(`Failed to parse detailed content JSON for step ${step.step}:`, parseError);
-              // Create fallback structure
               detailedContent = createFallbackDetailedContent(step);
             }
           }
           
-          // Create enhanced step with detailed content
           const enhancedStep: RoadmapStep = {
             ...step,
             detailedContent: detailedContent?.detailedContent || createFallbackDetailedContent(step).detailedContent
@@ -295,7 +277,6 @@ Return only JSON without explanations or markdown.`;
           
         } catch (error) {
           console.error(`Error generating detailed content for step ${step.step}:`, error);
-          // If there's an error, add a step with fallback detailed content
           enhancedSteps.push({
             ...step,
             detailedContent: createFallbackDetailedContent(step).detailedContent
@@ -310,7 +291,6 @@ Return only JSON without explanations or markdown.`;
       
     } catch (error) {
       console.error('Error enhancing roadmap with details:', error);
-      // Return the original roadmap if enhancement fails
       return basicRoadmap;
     }
   };
