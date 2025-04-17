@@ -380,22 +380,20 @@ Return only JSON without explanations or markdown.`;
     const doc = new jsPDF();
     let yPosition = 20;
     
-    // Title
+    const experienceLevel = roadmap.experience === 'advanced' ? 'Advanced' : roadmap.experience;
+    
     doc.setFontSize(20);
     doc.text(`Learning Roadmap: ${roadmap.topic}`, 20, yPosition);
     yPosition += 10;
     
-    // Experience Level
     doc.setFontSize(12);
-    doc.text(`Experience Level: ${roadmap.experience}`, 20, yPosition);
+    doc.text(`Experience Level: ${experienceLevel}`, 20, yPosition);
     yPosition += 15;
     
-    // Roadmap Steps
     doc.setFontSize(16);
     doc.text('Roadmap Steps:', 20, yPosition);
     yPosition += 10;
     
-    // Add each step
     roadmap.steps.forEach((step, index) => {
       doc.setFontSize(14);
       doc.text(`Step ${step.step}: ${step.title}`, 20, yPosition);
@@ -403,12 +401,10 @@ Return only JSON without explanations or markdown.`;
       
       doc.setFontSize(10);
       
-      // Split description into lines to avoid overflow
       const descriptionLines = doc.splitTextToSize(step.description, 170);
       doc.text(descriptionLines, 25, yPosition);
       yPosition += 10 + (descriptionLines.length - 1) * 5;
       
-      // Add detailed content for each step if available
       if (step.detailedContent && step.detailedContent.length > 0) {
         doc.setFontSize(12);
         doc.text('Detailed Content:', 25, yPosition);
@@ -417,7 +413,6 @@ Return only JSON without explanations or markdown.`;
         step.detailedContent.forEach((chapter) => {
           doc.setFontSize(11);
           
-          // Check if we need a new page
           if (yPosition > 270) {
             doc.addPage();
             yPosition = 20;
@@ -429,7 +424,6 @@ Return only JSON without explanations or markdown.`;
           chapter.sections.forEach((section) => {
             doc.setFontSize(10);
             
-            // Check if we need a new page
             if (yPosition > 270) {
               doc.addPage();
               yPosition = 20;
@@ -439,7 +433,6 @@ Return only JSON without explanations or markdown.`;
             yPosition += 5;
             
             section.items.forEach((item) => {
-              // Check if we need a new page
               if (yPosition > 270) {
                 doc.addPage();
                 yPosition = 20;
@@ -456,30 +449,25 @@ Return only JSON without explanations or markdown.`;
         });
       }
       
-      // Add some space between steps
       yPosition += 5;
       
-      // Check if we need a new page for the next step
       if (yPosition > 250 && index < roadmap.steps.length - 1) {
         doc.addPage();
         yPosition = 20;
       }
     });
     
-    // Save the PDF
     doc.save(`${roadmap.topic.replace(/\s+/g, '_')}_roadmap.pdf`);
     toast.success('PDF successfully downloaded!');
   };
   
   const startLearningSession = () => {
-    // Navigate to the first topic in the learning session
     window.location.href = '/learning-session/1';
   };
   
   const saveCurrentRoadmap = () => {
     if (!roadmap) return;
     
-    // Here we would typically save the roadmap to a backend
     try {
       localStorage.setItem('savedRoadmaps', JSON.stringify([
         ...(JSON.parse(localStorage.getItem('savedRoadmaps') || '[]')),
@@ -500,17 +488,14 @@ Return only JSON without explanations or markdown.`;
   };
   
   const generateNewRoadmap = () => {
-    // Save current roadmap first
     saveCurrentRoadmap();
     
-    // Reset the form
     handleReset();
   };
   
   if (currentStep === ROADMAP_STEP && roadmap) {
     return (
       <div className="space-y-8">
-        {/* Header with navigation */}
         <div className="flex justify-between items-center">
           <h1 className="text-2xl font-bold text-white font-heading">
             AI Learning Roadmap <span className="text-primary">.</span>
@@ -565,34 +550,30 @@ Return only JSON without explanations or markdown.`;
           </div>
         </div>
         
-        {/* Roadmap Display */}
-        {currentStep === ROADMAP_STEP && roadmap && (
-          <div className="space-y-8">
-            <RoadmapDisplay
-              roadmap={roadmap}
-              currentStep={currentRoadmapStep}
-              onStepComplete={handleStepComplete}
-              completedSteps={completedSteps}
-            />
-            
-            <div className="flex justify-center mt-8">
-              <Button
-                size="lg"
-                onClick={startLearningSession}
-                className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white px-8"
-              >
-                Start Learning with AI Guru
-              </Button>
-            </div>
+        <div className="space-y-8">
+          <RoadmapDisplay
+            roadmap={roadmap}
+            currentStep={currentRoadmapStep}
+            onStepComplete={handleStepComplete}
+            completedSteps={completedSteps}
+          />
+          
+          <div className="flex justify-center mt-8">
+            <Button
+              size="lg"
+              onClick={startLearningSession}
+              className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white px-8"
+            >
+              Start Learning with AI Guru
+            </Button>
           </div>
-        )}
+        </div>
       </div>
     );
   }
   
   return (
     <div className="space-y-8">
-      {/* Header with navigation */}
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold text-white font-heading">
           AI Learning Roadmap <span className="text-primary">.</span>
@@ -637,7 +618,6 @@ Return only JSON without explanations or markdown.`;
         </div>
       </div>
       
-      {/* Step 1: Experience Selection */}
       {currentStep === EXPERIENCE_STEP && (
         <ExperienceSelector
           selectedLevel={selectedExperience}
@@ -645,7 +625,6 @@ Return only JSON without explanations or markdown.`;
         />
       )}
       
-      {/* Step 2: Topic Input */}
       {currentStep === TOPIC_STEP && (
         <TopicInput
           onSubmit={handleTopicSubmit}
@@ -653,7 +632,6 @@ Return only JSON without explanations or markdown.`;
         />
       )}
       
-      {/* Step 3 & 4: Roadmap Display and Interactive Guide */}
       {currentStep === ROADMAP_STEP && roadmap && (
         <div className="space-y-8">
           <RoadmapDisplay
