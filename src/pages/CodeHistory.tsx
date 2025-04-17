@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import Navbar from '@/components/Navbar';
 import { useNavigate } from 'react-router-dom';
@@ -5,7 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Calendar, ChevronRight, Code, FileCode, Graduation, GraduationCap, Route } from 'lucide-react';
+import { Calendar, ChevronRight, Code, FileCode, GraduationCap, Route } from 'lucide-react';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
 import { Roadmap } from '@/components/RoadmapDisplay';
