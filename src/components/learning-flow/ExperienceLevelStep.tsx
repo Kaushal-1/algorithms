@@ -62,7 +62,8 @@ const ExperienceLevelStep: React.FC = () => {
     
     // If expert, don't proceed automatically so they can select known topics
     if (level !== 'expert') {
-      setCurrentStep(4);
+      // Move to the next step (topic selection) only if we're not already there
+      setCurrentStep(prev => prev === 3 ? 4 : prev);
     }
   };
 

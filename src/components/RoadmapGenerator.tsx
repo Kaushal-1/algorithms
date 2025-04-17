@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { Roadmap, RoadmapStep, ChapterContent, DetailedContent } from './RoadmapDisplay';
 import RoadmapDisplay from './RoadmapDisplay';
@@ -9,8 +10,10 @@ import { ChevronLeft, RotateCcw, Save, FileDown, RefreshCw } from 'lucide-react'
 import { UserLearningProfile } from '@/types/UserProfile';
 import { jsPDF } from 'jspdf';
 import { toast } from 'sonner';
+import { Step, ExperienceLevel } from '@/types/StepTypes';
+
+// Import the constants from StepTypes.ts to avoid string comparison errors
 import { EXPERIENCE_STEP, TOPIC_STEP, ROADMAP_STEP } from '@/types/StepTypes';
-import type { ExperienceLevel, Step } from '@/types/StepTypes';
 
 interface RoadmapGeneratorProps {
   initialProfile?: UserLearningProfile | null;
@@ -469,7 +472,6 @@ Return only JSON without explanations or markdown.`;
   
   const generateNewRoadmap = () => {
     saveCurrentRoadmap();
-    
     handleReset();
   };
   
