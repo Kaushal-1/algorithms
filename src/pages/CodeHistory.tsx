@@ -1,276 +1,224 @@
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Navbar from '@/components/Navbar';
-import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Search, Filter, Clock, BookOpen, Code, CheckCircle, XCircle } from "lucide-react";
-import TutorSessionCard from '@/components/TutorSessionCard';
-import DSASubmissionCard from '@/components/DSASubmissionCard';
-import HistoryAnalytics from '@/components/HistoryAnalytics';
+import { useNavigate } from 'react-router-dom';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Calendar, ChevronRight, Code, FileCode, Graduation, Route } from 'lucide-react';
+import { format } from 'date-fns';
+import { toast } from 'sonner';
+import { Roadmap } from '@/components/RoadmapDisplay';
 
-// Mock data for AI Tutor sessions
-const MOCK_TUTOR_SESSIONS = [
-  {
-    id: '1',
-    title: 'Learned React Basics',
-    date: 'Today, 2:30 PM',
-    topics: ['react', 'javascript', 'hooks'],
-    duration: '45 mins'
-  },
-  {
-    id: '2',
-    title: 'Advanced CSS Animations',
-    date: 'Yesterday, 4:15 PM',
-    topics: ['css', 'animations', 'keyframes'],
-    duration: '32 mins'
-  },
-  {
-    id: '3',
-    title: 'TypeScript Generics Deep Dive',
-    date: '2 days ago',
-    topics: ['typescript', 'generics', 'advanced'],
-    duration: '58 mins'
-  },
-  {
-    id: '4',
-    title: 'Building Custom React Hooks',
-    date: '3 days ago',
-    topics: ['react', 'hooks', 'custom-hooks'],
-    duration: '41 mins'
-  }
-];
+interface SavedRoadmap {
+  id: string;
+  title: string;
+  experience: string;
+  createdAt: string;
+  steps: any[];
+}
 
-// Mock data for DSA submissions
-const MOCK_DSA_SUBMISSIONS = [
-  {
-    id: '1',
-    title: 'Two Sum',
-    tags: ['arrays', 'hash-map', 'easy'],
-    language: 'JavaScript',
-    date: 'Today, 2:30 PM',
-    status: 'passed' as const,
-    attempts: 1,
-    feedbackSummary: 'Well-optimized solution using a hash map, O(n) time complexity.'
-  },
-  {
-    id: '2',
-    title: 'Valid Parentheses',
-    tags: ['stack', 'strings', 'medium'],
-    language: 'Python',
-    date: 'Yesterday, 4:15 PM',
-    status: 'passed' as const,
-    attempts: 2,
-    feedbackSummary: 'Good use of stack data structure, but could improve variable naming.'
-  },
-  {
-    id: '3',
-    title: 'Merge Sort Implementation',
-    tags: ['sorting', 'recursion', 'medium'],
-    language: 'C++',
-    date: '2 days ago',
-    status: 'failed' as const,
-    attempts: 3,
-    feedbackSummary: 'Edge case not handled for empty arrays, causing runtime error.'
-  },
-  {
-    id: '4',
-    title: 'Linked List Cycle',
-    tags: ['linked-list', 'two-pointers', 'medium'],
-    language: 'Java',
-    date: '3 days ago',
-    status: 'passed' as const,
-    attempts: 1,
-    feedbackSummary: "Excellent solution using Floyd's cycle-finding algorithm."
-  }
-];
+interface DSASession {
+  id: string;
+  problemTitle: string;
+  difficulty: 'easy' | 'medium' | 'hard';
+  createdAt: string;
+  completed: boolean;
+}
 
-// Analytics mock data
-const TUTOR_ANALYTICS = {
-  totalSessions: 12,
-  totalHours: 8.5,
-  mostFrequentTopic: 'React',
-  averageSessionDuration: '42 mins',
-  recentTopics: ['react', 'typescript', 'algorithms', 'css', 'node']
-};
+const CodeHistory: React.FC = () => {
+  const navigate = useNavigate();
+  const [savedRoadmaps, setSavedRoadmaps] = useState<SavedRoadmap[]>([]);
+  const [dsaSessions, setDsaSessions] = useState<DSASession[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-const DSA_ANALYTICS = {
-  totalProblems: 24,
-  successRate: 75,
-  mostUsedLanguage: 'JavaScript',
-  averageAttempts: 1.8,
-  recentTags: ['arrays', 'strings', 'dynamic-programming', 'trees', 'recursion']
-};
+  useEffect(() => {
+    // Load saved roadmaps and DSA sessions
+    try {
+      const roadmapsFromStorage = localStorage.getItem('savedRoadmaps');
+      if (roadmapsFromStorage) {
+        setSavedRoadmaps(JSON.parse(roadmapsFromStorage));
+      }
+      
+      // Mock DSA sessions (in a real app, these would come from a database)
+      setDsaSessions([
+        {
+          id: 'dsa-1',
+          problemTitle: 'Two Sum',
+          difficulty: 'easy',
+          createdAt: new Date().toISOString(),
+          completed: true
+        },
+        {
+          id: 'dsa-2',
+          problemTitle: 'Longest Substring Without Repeating Characters',
+          difficulty: 'medium',
+          createdAt: new Date(Date.now() - 86400000).toISOString(), // 1 day ago
+          completed: true
+        }
+      ]);
+    } catch (error) {
+      console.error('Error loading history:', error);
+      toast.error('Failed to load history');
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
 
-const CodeHistory = () => {
-  const [activeTab, setActiveTab] = useState("ai-tutor");
-  const [searchTerm, setSearchTerm] = useState('');
-  const [timeRange, setTimeRange] = useState('all');
-  const [sortBy, setSortBy] = useState('newest');
-  const [language, setLanguage] = useState('all');
-  const [status, setStatus] = useState('all');
+  const openRoadmap = (roadmapId: string) => {
+    // Find the roadmap in the saved roadmaps
+    const roadmap = savedRoadmaps.find(r => r.id === roadmapId);
+    if (roadmap) {
+      // Save it as the current roadmap
+      localStorage.setItem('currentRoadmap', JSON.stringify(roadmap));
+      // Navigate to the learning session
+      navigate('/learning-session/1');
+    } else {
+      toast.error('Roadmap not found');
+    }
+  };
 
-  // Filter tutor sessions based on search and filters
-  const filteredTutorSessions = MOCK_TUTOR_SESSIONS.filter(session => {
-    const matchesSearch = searchTerm === '' || 
-      session.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      session.topics.some(topic => topic.toLowerCase().includes(searchTerm.toLowerCase()));
-    
-    // For simplicity, not implementing actual date filtering
-    return matchesSearch;
-  });
-
-  // Filter DSA submissions based on search and filters
-  const filteredDSASubmissions = MOCK_DSA_SUBMISSIONS.filter(submission => {
-    const matchesSearch = searchTerm === '' || 
-      submission.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      submission.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()));
-    
-    const matchesLanguage = language === 'all' || submission.language.toLowerCase() === language.toLowerCase();
-    const matchesStatus = status === 'all' || 
-      (status === 'passed' && submission.status === 'passed') ||
-      (status === 'failed' && submission.status === 'failed');
-    
-    // For simplicity, not implementing actual date filtering
-    return matchesSearch && matchesLanguage && matchesStatus;
-  });
+  const openDSASession = (sessionId: string) => {
+    // In a real app, this would load the specific DSA session
+    toast.info('This feature is coming soon!');
+  };
 
   return (
     <div className="min-h-screen bg-algos-dark">
       <Navbar />
       
-      <main className="pt-24 pb-16 px-4 md:px-8 max-w-7xl mx-auto">
-        <h1 className="text-3xl font-bold mb-6 text-white font-heading">Your Learning History</h1>
-        
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-          {/* Main content area - submissions */}
-          <div className="lg:col-span-3 space-y-6">
-            <Tabs defaultValue={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="grid grid-cols-2 mb-6 bg-card/20">
-                <TabsTrigger value="ai-tutor" className="flex items-center gap-2">
-                  <BookOpen className="h-4 w-4" />
-                  <span>AI Tutor Sessions</span>
-                </TabsTrigger>
-                <TabsTrigger value="dsa-trainer" className="flex items-center gap-2">
-                  <Code className="h-4 w-4" />
-                  <span>DSA Trainer Progress</span>
-                </TabsTrigger>
-              </TabsList>
-              
-              {/* Filters section */}
-              <div className="flex flex-col md:flex-row gap-4 mb-6">
-                <div className="relative flex-grow">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={18} />
-                  <Input
-                    placeholder={activeTab === "ai-tutor" ? "Search by session title or topic..." : "Search by problem name or tag..."}
-                    value={searchTerm}
-                    onChange={e => setSearchTerm(e.target.value)}
-                    className="pl-10 bg-card/50 border-border"
-                  />
-                </div>
-                
-                <div className="flex gap-3">
-                  {activeTab === "dsa-trainer" && (
-                    <>
-                      <Select value={language} onValueChange={setLanguage}>
-                        <SelectTrigger className="w-[140px] bg-card/50 border-border">
-                          <Filter className="mr-2 h-4 w-4" />
-                          <SelectValue placeholder="Language" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="all">All Languages</SelectItem>
-                          <SelectItem value="javascript">JavaScript</SelectItem>
-                          <SelectItem value="python">Python</SelectItem>
-                          <SelectItem value="java">Java</SelectItem>
-                          <SelectItem value="c++">C++</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      
-                      <Select value={status} onValueChange={setStatus}>
-                        <SelectTrigger className="w-[140px] bg-card/50 border-border">
-                          <SelectValue placeholder="Status" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="all">All Status</SelectItem>
-                          <SelectItem value="passed">Passed</SelectItem>
-                          <SelectItem value="failed">Failed</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </>
-                  )}
-                  
-                  <Select value={timeRange} onValueChange={setTimeRange}>
-                    <SelectTrigger className="w-[140px] bg-card/50 border-border">
-                      <Clock className="mr-2 h-4 w-4" />
-                      <SelectValue placeholder="Time Range" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Time</SelectItem>
-                      <SelectItem value="today">Today</SelectItem>
-                      <SelectItem value="week">Past Week</SelectItem>
-                      <SelectItem value="month">Past Month</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  
-                  <Select value={sortBy} onValueChange={setSortBy}>
-                    <SelectTrigger className="w-[140px] bg-card/50 border-border">
-                      <SelectValue placeholder="Sort By" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="newest">Newest</SelectItem>
-                      <SelectItem value="oldest">Oldest</SelectItem>
-                      <SelectItem value="title">Title A-Z</SelectItem>
-                      {activeTab === "dsa-trainer" && (
-                        <SelectItem value="difficulty">Difficulty</SelectItem>
-                      )}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-            
-              <TabsContent value="ai-tutor" className="mt-0">
-                {/* AI Tutor Sessions grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
-                  {filteredTutorSessions.length > 0 ? (
-                    filteredTutorSessions.map(session => (
-                      <TutorSessionCard key={session.id} session={session} />
-                    ))
-                  ) : (
-                    <div className="col-span-full flex flex-col items-center justify-center py-12 text-muted-foreground">
-                      <p className="text-lg">No AI tutor sessions found matching your filters.</p>
-                      <p className="text-sm mt-2">Try adjusting your search or filter criteria.</p>
-                    </div>
-                  )}
-                </div>
-              </TabsContent>
-              
-              <TabsContent value="dsa-trainer" className="mt-0">
-                {/* DSA Submissions grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
-                  {filteredDSASubmissions.length > 0 ? (
-                    filteredDSASubmissions.map(submission => (
-                      <DSASubmissionCard key={submission.id} submission={submission} />
-                    ))
-                  ) : (
-                    <div className="col-span-full flex flex-col items-center justify-center py-12 text-muted-foreground">
-                      <p className="text-lg">No DSA submissions found matching your filters.</p>
-                      <p className="text-sm mt-2">Try adjusting your search or filter criteria.</p>
-                    </div>
-                  )}
-                </div>
-              </TabsContent>
-            </Tabs>
-          </div>
-          
-          {/* Sidebar - analytics */}
-          <div className="order-first lg:order-last">
-            {activeTab === "ai-tutor" ? (
-              <HistoryAnalytics {...TUTOR_ANALYTICS} />
-            ) : (
-              <HistoryAnalytics {...DSA_ANALYTICS} />
-            )}
-          </div>
+      <main className="pt-20 px-4 pb-8 max-w-7xl mx-auto">
+        <div className="mb-6">
+          <h1 className="text-2xl font-bold">Learning History</h1>
+          <p className="text-muted-foreground">Review your past learning sessions and progress</p>
         </div>
+        
+        <Tabs defaultValue="ai-guru" className="w-full">
+          <TabsList className="mb-6">
+            <TabsTrigger value="ai-guru" className="flex items-center gap-2">
+              <Graduation className="h-4 w-4" />
+              AI Guru History
+            </TabsTrigger>
+            <TabsTrigger value="dsa-guru" className="flex items-center gap-2">
+              <FileCode className="h-4 w-4" />
+              DSA Guru History
+            </TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="ai-guru">
+            {isLoading ? (
+              <div className="flex justify-center p-12">
+                <p>Loading your roadmaps...</p>
+              </div>
+            ) : savedRoadmaps.length > 0 ? (
+              <ScrollArea className="h-[calc(100vh-240px)]">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {savedRoadmaps.map((roadmap) => (
+                    <Card key={roadmap.id} className="hover:border-primary/50 transition-all cursor-pointer" onClick={() => openRoadmap(roadmap.id)}>
+                      <CardHeader>
+                        <CardTitle className="flex justify-between items-start">
+                          <span className="line-clamp-2">{roadmap.title}</span>
+                          <Button variant="ghost" size="icon" className="shrink-0">
+                            <ChevronRight className="h-4 w-4" />
+                          </Button>
+                        </CardTitle>
+                        <CardDescription className="flex items-center gap-2">
+                          <Calendar className="h-3 w-3" />
+                          {format(new Date(roadmap.createdAt), 'PPP')}
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm font-medium bg-primary/20 text-primary px-2 py-1 rounded-full">
+                            {roadmap.experience} level
+                          </span>
+                          <span className="text-sm text-muted-foreground">
+                            {roadmap.steps.length} steps
+                          </span>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </ScrollArea>
+            ) : (
+              <Card className="w-full p-6 text-center">
+                <CardContent>
+                  <div className="flex flex-col items-center justify-center py-12">
+                    <Route className="h-12 w-12 text-muted-foreground mb-4" />
+                    <h3 className="text-xl font-semibold mb-2">No Roadmaps Yet</h3>
+                    <p className="text-muted-foreground mb-6">
+                      You haven't created any learning roadmaps with AI Guru yet.
+                    </p>
+                    <Button onClick={() => navigate('/personalized-learning')}>
+                      Create Your First Roadmap
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </TabsContent>
+          
+          <TabsContent value="dsa-guru">
+            {isLoading ? (
+              <div className="flex justify-center p-12">
+                <p>Loading your DSA sessions...</p>
+              </div>
+            ) : dsaSessions.length > 0 ? (
+              <ScrollArea className="h-[calc(100vh-240px)]">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {dsaSessions.map((session) => (
+                    <Card key={session.id} className="hover:border-primary/50 transition-all cursor-pointer" onClick={() => openDSASession(session.id)}>
+                      <CardHeader>
+                        <CardTitle className="flex justify-between items-start">
+                          <span className="line-clamp-2">{session.problemTitle}</span>
+                          <Button variant="ghost" size="icon" className="shrink-0">
+                            <ChevronRight className="h-4 w-4" />
+                          </Button>
+                        </CardTitle>
+                        <CardDescription className="flex items-center gap-2">
+                          <Calendar className="h-3 w-3" />
+                          {format(new Date(session.createdAt), 'PPP')}
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="flex justify-between items-center">
+                          <span className={`text-sm font-medium px-2 py-1 rounded-full ${
+                            session.difficulty === 'easy' ? 'bg-green-500/20 text-green-500' :
+                            session.difficulty === 'medium' ? 'bg-yellow-500/20 text-yellow-500' :
+                            'bg-red-500/20 text-red-500'
+                          }`}>
+                            {session.difficulty}
+                          </span>
+                          <span className="text-sm text-muted-foreground flex items-center gap-1">
+                            <Code className="h-3 w-3" />
+                            {session.completed ? 'Completed' : 'In progress'}
+                          </span>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </ScrollArea>
+            ) : (
+              <Card className="w-full p-6 text-center">
+                <CardContent>
+                  <div className="flex flex-col items-center justify-center py-12">
+                    <FileCode className="h-12 w-12 text-muted-foreground mb-4" />
+                    <h3 className="text-xl font-semibold mb-2">No DSA Sessions Yet</h3>
+                    <p className="text-muted-foreground mb-6">
+                      You haven't practiced any DSA problems with DSA Guru yet.
+                    </p>
+                    <Button onClick={() => navigate('/dsa-chat-prompt')}>
+                      Try Your First DSA Problem
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </TabsContent>
+        </Tabs>
       </main>
     </div>
   );

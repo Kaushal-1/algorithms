@@ -5,7 +5,7 @@ import ExperienceSelector from './ExperienceSelector';
 import TopicInput from './TopicInput';
 import StepwiseAIGuide from './StepwiseAIGuide';
 import { Button } from '@/components/ui/button';
-import { ChevronLeft, RotateCcw, Save, FileDown } from 'lucide-react';
+import { ChevronLeft, RotateCcw, Save, FileDown, RefreshCw } from 'lucide-react';
 import { UserLearningProfile } from '@/types/UserProfile';
 import { jsPDF } from 'jspdf';
 import { toast } from 'sonner';
@@ -476,6 +476,37 @@ Return only JSON without explanations or markdown.`;
     window.location.href = '/learning-session/1';
   };
   
+  const saveCurrentRoadmap = () => {
+    if (!roadmap) return;
+    
+    // Here we would typically save the roadmap to a backend
+    try {
+      localStorage.setItem('savedRoadmaps', JSON.stringify([
+        ...(JSON.parse(localStorage.getItem('savedRoadmaps') || '[]')),
+        {
+          id: roadmap.id,
+          title: roadmap.topic,
+          experience: roadmap.experience,
+          createdAt: new Date().toISOString(),
+          steps: roadmap.steps
+        }
+      ]));
+      
+      toast.success('Roadmap saved successfully!');
+    } catch (error) {
+      console.error('Error saving roadmap:', error);
+      toast.error('Failed to save roadmap');
+    }
+  };
+  
+  const generateNewRoadmap = () => {
+    // Save current roadmap first
+    saveCurrentRoadmap();
+    
+    // Reset the form
+    handleReset();
+  };
+  
   if (currentStep === ROADMAP_STEP && roadmap) {
     return (
       <div className="space-y-8">
@@ -497,6 +528,16 @@ Return only JSON without explanations or markdown.`;
                 Back
               </Button>
             )}
+            
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={generateNewRoadmap}
+              className="bg-card/40 border-border/50 hover:bg-card/60"
+            >
+              <RefreshCw className="h-4 w-4 mr-2" />
+              Generate New Roadmap
+            </Button>
             
             {roadmap && (
               <Button
