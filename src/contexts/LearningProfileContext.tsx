@@ -1,6 +1,6 @@
 
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
-import { UserLearningProfile, UserType, ExperienceLevel, KnownTopic } from '../types/UserProfile';
+import { UserLearningProfile, UserType, ExperienceLevel, KnownTopic, UserTypeDetails } from '../types/UserProfile';
 
 interface LearningProfileContextType {
   userProfile: UserLearningProfile | null;
@@ -8,6 +8,7 @@ interface LearningProfileContextType {
   setTopic: (topic: string) => void;
   setExperienceLevel: (level: ExperienceLevel) => void;
   setKnownTopics: (topics: KnownTopic[]) => void;
+  setUserTypeDetails: (details: UserTypeDetails) => void;
   resetProfile: () => void;
   saveProfile: () => void;
   currentStep: number;
@@ -74,6 +75,13 @@ export const LearningProfileProvider: React.FC<{ children: ReactNode }> = ({ chi
     });
   };
 
+  const setUserTypeDetails = (details: UserTypeDetails) => {
+    setUserProfile(prev => {
+      if (!prev) return { ...defaultProfile, userTypeDetails: details };
+      return { ...prev, userTypeDetails: details, updatedAt: new Date() };
+    });
+  };
+
   const resetProfile = () => {
     setUserProfile({ ...defaultProfile });
     setCurrentStep(1);
@@ -95,6 +103,7 @@ export const LearningProfileProvider: React.FC<{ children: ReactNode }> = ({ chi
         setTopic,
         setExperienceLevel,
         setKnownTopics,
+        setUserTypeDetails,
         resetProfile,
         saveProfile,
         currentStep,

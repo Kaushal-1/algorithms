@@ -23,12 +23,23 @@ export interface WorkingProfessionalDetails {
 
 export type UserTypeDetails = SchoolStudentDetails | CollegeStudentDetails | WorkingProfessionalDetails | { [key: string]: string };
 
+export type ExperienceLevel = 'beginner' | 'intermediate' | 'advanced' | 'expert';
+
+export interface KnownTopic {
+  id: string;
+  name: string;
+  selected: boolean;
+}
+
 export interface UserLearningProfile {
   userType: UserType;
   customUserType?: string;
   userTypeDetails?: UserTypeDetails;
-  experienceLevel: 'beginner' | 'intermediate' | 'advanced' | 'expert';
+  experienceLevel: ExperienceLevel;
   topic: string;
+  knownTopics?: KnownTopic[];
+  createdAt?: Date;
+  updatedAt?: Date;
   savedRoadmaps?: Array<{
     id: string;
     title: string;
@@ -42,8 +53,9 @@ export interface UserProfileContextType {
   setCurrentStep: (step: number) => void;
   setUserType: (type: UserType, customType?: string) => void;
   setUserTypeDetails: (details: UserTypeDetails) => void;
-  setExperienceLevel: (level: 'beginner' | 'intermediate' | 'advanced' | 'expert') => void;
+  setExperienceLevel: (level: ExperienceLevel) => void;
   setTopic: (topic: string) => void;
-  reset: () => void;
-  saveRoadmap: (roadmapId: string, title: string) => void;
+  setKnownTopics: (topics: KnownTopic[]) => void;
+  resetProfile: () => void;
+  saveProfile: () => void;
 }

@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import Navbar from '@/components/Navbar';
 import { useNavigate } from 'react-router-dom';
@@ -6,7 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Calendar, ChevronRight, Code, FileCode, Graduation, Route } from 'lucide-react';
+import { Calendar, ChevronRight, Code, FileCode, Graduation, GraduationCap, Route } from 'lucide-react';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
 import { Roadmap } from '@/components/RoadmapDisplay';
@@ -97,7 +96,7 @@ const CodeHistory: React.FC = () => {
         <Tabs defaultValue="ai-guru" className="w-full">
           <TabsList className="mb-6">
             <TabsTrigger value="ai-guru" className="flex items-center gap-2">
-              <Graduation className="h-4 w-4" />
+              <GraduationCap className="h-4 w-4" />
               AI Guru History
             </TabsTrigger>
             <TabsTrigger value="dsa-guru" className="flex items-center gap-2">

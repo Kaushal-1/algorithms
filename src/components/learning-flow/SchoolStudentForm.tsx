@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -6,12 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useLearningProfile } from '@/contexts/LearningProfileContext';
-
-interface SchoolStudentDetails {
-  standard: string;
-  schoolName: string;
-  board: string;
-}
+import { SchoolStudentDetails } from '@/types/UserProfile';
 
 const SchoolStudentForm: React.FC = () => {
   const { setUserTypeDetails, setCurrentStep } = useLearningProfile();
