@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -62,8 +61,8 @@ const ExperienceLevelStep: React.FC = () => {
     
     // If expert, don't proceed automatically so they can select known topics
     if (level !== 'expert') {
-      // Move to the next step (topic selection) only if we're not already there
-      setCurrentStep(prev => prev === 3 ? 4 : prev);
+      // Move to the next step (topic selection) without using a callback function
+      setCurrentStep(4);
     }
   };
 
