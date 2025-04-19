@@ -1,8 +1,7 @@
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { 
   Form,
   FormControl,
@@ -11,76 +10,83 @@ import {
   FormLabel,
   FormMessage 
 } from '@/components/ui/form';
-import { Textarea } from '@/components/ui/textarea';
 import { 
   SchoolStudentDetails, 
   CollegeStudentDetails, 
-  WorkingProfessionalDetails, 
-  UserType 
+  WorkingProfessionalDetails,
+  UserType
 } from '@/types/UserProfile';
 import { useLearningProfile } from '@/contexts/LearningProfileContext';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
 
+type FormSchemas = {
+  school_student: z.ZodObject<{
+    standard: z.ZodString;
+    schoolName: z.ZodString;
+    board: z.ZodString;
+  }>;
+  college_student: z.ZodObject<{
+    degree: z.ZodString;
+    domain: z.ZodString;
+    collegeName: z.ZodString;
+  }>;
+  working_professional: z.ZodObject<{
+    companyName: z.ZodString;
+    currentRole: z.ZodString;
+    experienceYears: z.ZodString;
+    domain: z.ZodString;
+  }>;
+};
+
 const UserDetailsStep: React.FC = () => {
   const { userProfile, updateUserDetails, setCurrentStep } = useLearningProfile();
   
-  // Create different schemas based on user type
-  const schoolStudentSchema = z.object({
-    standard: z.string().min(1, { message: "Please enter your grade/standard" }),
-    schoolName: z.string().min(1, { message: "Please enter your school name" }),
-    board: z.string().min(1, { message: "Please enter your school board" }),
-  });
-
-  const collegeStudentSchema = z.object({
-    degree: z.string().min(1, { message: "Please enter your degree" }),
-    domain: z.string().min(1, { message: "Please enter your domain/major" }),
-    collegeName: z.string().min(1, { message: "Please enter your college name" }),
-  });
-
-  const workingProfessionalSchema = z.object({
-    companyName: z.string().min(1, { message: "Please enter your company name" }),
-    currentRole: z.string().min(1, { message: "Please enter your current role" }),
-    experienceYears: z.string().min(1, { message: "Please enter your years of experience" }),
-    domain: z.string().min(1, { message: "Please enter your domain/industry" }),
-  });
-
-  // Determine which schema to use based on user type
-  const getSchemaForUserType = (userType: UserType) => {
-    switch (userType) {
-      case 'school_student':
-        return schoolStudentSchema;
-      case 'college_student':
-        return collegeStudentSchema;
-      case 'working_professional':
-        return workingProfessionalSchema;
-      default:
-        return z.object({});
-    }
+  const schemas: FormSchemas = {
+    school_student: z.object({
+      standard: z.string().min(1, { message: "Please enter your grade/standard" }),
+      schoolName: z.string().min(1, { message: "Please enter your school name" }),
+      board: z.string().min(1, { message: "Please enter your school board" }),
+    }),
+    college_student: z.object({
+      degree: z.string().min(1, { message: "Please enter your degree" }),
+      domain: z.string().min(1, { message: "Please enter your domain/major" }),
+      collegeName: z.string().min(1, { message: "Please enter your college name" }),
+    }),
+    working_professional: z.object({
+      companyName: z.string().min(1, { message: "Please enter your company name" }),
+      currentRole: z.string().min(1, { message: "Please enter your current role" }),
+      experienceYears: z.string().min(1, { message: "Please enter your years of experience" }),
+      domain: z.string().min(1, { message: "Please enter your domain/industry" }),
+    }),
   };
 
-  const userType = userProfile?.userType || 'other';
-  const formSchema = getSchemaForUserType(userType);
-
   // Get default values based on user type
-  const getDefaultValues = () => {
+  const getDefaultValues = (userType: UserType) => {
     switch (userType) {
       case 'school_student':
         return userProfile?.schoolDetails || { standard: '', schoolName: '', board: '' };
       case 'college_student':
         return userProfile?.collegeDetails || { degree: '', domain: '', collegeName: '' };
       case 'working_professional':
-        return userProfile?.professionalDetails || { companyName: '', currentRole: '', experienceYears: '', domain: '' };
+        return userProfile?.professionalDetails || { 
+          companyName: '', 
+          currentRole: '', 
+          experienceYears: '', 
+          domain: '' 
+        };
       default:
         return {};
     }
   };
 
-  // Create form with the appropriate schema
+  const userType = userProfile?.userType || 'other';
+  const formSchema = schemas[userType as keyof FormSchemas];
+  
   const form = useForm({
     resolver: zodResolver(formSchema),
-    defaultValues: getDefaultValues(),
+    defaultValues: getDefaultValues(userType),
   });
 
   // Handle form submission
@@ -96,10 +102,13 @@ const UserDetailsStep: React.FC = () => {
         updateUserDetails({ professionalDetails: data as WorkingProfessionalDetails });
         break;
     }
-    
-    // Move to the next step (topic selection)
     setCurrentStep(3);
   };
+
+  if (userType === 'other') {
+    setCurrentStep(3);
+    return null;
+  }
 
   return (
     <div className="space-y-6">
@@ -267,3 +276,4 @@ const UserDetailsStep: React.FC = () => {
 };
 
 export default UserDetailsStep;
+
