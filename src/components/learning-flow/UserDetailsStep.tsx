@@ -21,87 +21,81 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
 
-type FormSchemas = {
-  school_student: z.ZodObject<{
-    standard: z.ZodString;
-    schoolName: z.ZodString;
-    board: z.ZodString;
-  }>;
-  college_student: z.ZodObject<{
-    degree: z.ZodString;
-    domain: z.ZodString;
-    collegeName: z.ZodString;
-  }>;
-  working_professional: z.ZodObject<{
-    companyName: z.ZodString;
-    currentRole: z.ZodString;
-    experienceYears: z.ZodString;
-    domain: z.ZodString;
-  }>;
-};
+// Define schema interfaces for each user type
+const schoolStudentSchema = z.object({
+  standard: z.string().min(1, { message: "Please enter your grade/standard" }),
+  schoolName: z.string().min(1, { message: "Please enter your school name" }),
+  board: z.string().min(1, { message: "Please enter your school board" }),
+});
+
+const collegeStudentSchema = z.object({
+  degree: z.string().min(1, { message: "Please enter your degree" }),
+  domain: z.string().min(1, { message: "Please enter your domain/major" }),
+  collegeName: z.string().min(1, { message: "Please enter your college name" }),
+});
+
+const workingProfessionalSchema = z.object({
+  companyName: z.string().min(1, { message: "Please enter your company name" }),
+  currentRole: z.string().min(1, { message: "Please enter your current role" }),
+  experienceYears: z.string().min(1, { message: "Please enter your years of experience" }),
+  domain: z.string().min(1, { message: "Please enter your domain/industry" }),
+});
+
+// Define the types from schemas
+type SchoolStudentForm = z.infer<typeof schoolStudentSchema>;
+type CollegeStudentForm = z.infer<typeof collegeStudentSchema>;
+type WorkingProfessionalForm = z.infer<typeof workingProfessionalSchema>;
 
 const UserDetailsStep: React.FC = () => {
   const { userProfile, updateUserDetails, setCurrentStep } = useLearningProfile();
-  
-  const schemas: FormSchemas = {
-    school_student: z.object({
-      standard: z.string().min(1, { message: "Please enter your grade/standard" }),
-      schoolName: z.string().min(1, { message: "Please enter your school name" }),
-      board: z.string().min(1, { message: "Please enter your school board" }),
-    }),
-    college_student: z.object({
-      degree: z.string().min(1, { message: "Please enter your degree" }),
-      domain: z.string().min(1, { message: "Please enter your domain/major" }),
-      collegeName: z.string().min(1, { message: "Please enter your college name" }),
-    }),
-    working_professional: z.object({
-      companyName: z.string().min(1, { message: "Please enter your company name" }),
-      currentRole: z.string().min(1, { message: "Please enter your current role" }),
-      experienceYears: z.string().min(1, { message: "Please enter your years of experience" }),
-      domain: z.string().min(1, { message: "Please enter your domain/industry" }),
-    }),
-  };
-
-  // Get default values based on user type
-  const getDefaultValues = (userType: UserType) => {
-    switch (userType) {
-      case 'school_student':
-        return userProfile?.schoolDetails || { standard: '', schoolName: '', board: '' };
-      case 'college_student':
-        return userProfile?.collegeDetails || { degree: '', domain: '', collegeName: '' };
-      case 'working_professional':
-        return userProfile?.professionalDetails || { 
-          companyName: '', 
-          currentRole: '', 
-          experienceYears: '', 
-          domain: '' 
-        };
-      default:
-        return {};
-    }
-  };
-
   const userType = userProfile?.userType || 'other';
-  const formSchema = schemas[userType as keyof FormSchemas];
   
-  const form = useForm({
-    resolver: zodResolver(formSchema),
-    defaultValues: getDefaultValues(userType),
+  // School student form
+  const schoolForm = useForm<SchoolStudentForm>({
+    resolver: zodResolver(schoolStudentSchema),
+    defaultValues: userProfile?.schoolDetails || { 
+      standard: '', 
+      schoolName: '', 
+      board: '' 
+    },
   });
 
-  // Handle form submission
-  const onSubmit = (data: any) => {
-    switch (userType) {
-      case 'school_student':
-        updateUserDetails({ schoolDetails: data as SchoolStudentDetails });
-        break;
-      case 'college_student':
-        updateUserDetails({ collegeDetails: data as CollegeStudentDetails });
-        break;
-      case 'working_professional':
-        updateUserDetails({ professionalDetails: data as WorkingProfessionalDetails });
-        break;
-    }
+  // College student form
+  const collegeForm = useForm<CollegeStudentForm>({
+    resolver: zodResolver(collegeStudentSchema),
+    defaultValues: userProfile?.collegeDetails || { 
+      degree: '', 
+      domain: '', 
+      collegeName: '' 
+    },
+  });
+
+  // Working professional form
+  const professionalForm = useForm<WorkingProfessionalForm>({
+    resolver: zodResolver(workingProfessionalSchema),
+    defaultValues: userProfile?.professionalDetails || { 
+      companyName: '', 
+      currentRole: '', 
+      experienceYears: '', 
+      domain: '' 
+    },
+  });
+
+  // Handle form submission for school students
+  const onSchoolSubmit = (data: SchoolStudentForm) => {
+    updateUserDetails({ schoolDetails: data });
+    setCurrentStep(3);
+  };
+
+  // Handle form submission for college students
+  const onCollegeSubmit = (data: CollegeStudentForm) => {
+    updateUserDetails({ collegeDetails: data });
+    setCurrentStep(3);
+  };
+
+  // Handle form submission for working professionals
+  const onProfessionalSubmit = (data: WorkingProfessionalForm) => {
+    updateUserDetails({ professionalDetails: data });
     setCurrentStep(3);
   };
 
@@ -119,12 +113,12 @@ const UserDetailsStep: React.FC = () => {
         </p>
       </div>
 
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-          {userType === 'school_student' && (
+      {userType === 'school_student' && (
+        <Form {...schoolForm}>
+          <form onSubmit={schoolForm.handleSubmit(onSchoolSubmit)} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <FormField
-                control={form.control}
+                control={schoolForm.control}
                 name="standard"
                 render={({ field }) => (
                   <FormItem>
@@ -137,7 +131,7 @@ const UserDetailsStep: React.FC = () => {
                 )}
               />
               <FormField
-                control={form.control}
+                control={schoolForm.control}
                 name="schoolName"
                 render={({ field }) => (
                   <FormItem>
@@ -150,7 +144,7 @@ const UserDetailsStep: React.FC = () => {
                 )}
               />
               <FormField
-                control={form.control}
+                control={schoolForm.control}
                 name="board"
                 render={({ field }) => (
                   <FormItem className="md:col-span-2">
@@ -163,12 +157,19 @@ const UserDetailsStep: React.FC = () => {
                 )}
               />
             </div>
-          )}
+            <div className="flex justify-center mt-8">
+              <Button type="submit" className="w-full md:w-1/3">Continue</Button>
+            </div>
+          </form>
+        </Form>
+      )}
 
-          {userType === 'college_student' && (
+      {userType === 'college_student' && (
+        <Form {...collegeForm}>
+          <form onSubmit={collegeForm.handleSubmit(onCollegeSubmit)} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <FormField
-                control={form.control}
+                control={collegeForm.control}
                 name="degree"
                 render={({ field }) => (
                   <FormItem>
@@ -181,7 +182,7 @@ const UserDetailsStep: React.FC = () => {
                 )}
               />
               <FormField
-                control={form.control}
+                control={collegeForm.control}
                 name="domain"
                 render={({ field }) => (
                   <FormItem>
@@ -194,7 +195,7 @@ const UserDetailsStep: React.FC = () => {
                 )}
               />
               <FormField
-                control={form.control}
+                control={collegeForm.control}
                 name="collegeName"
                 render={({ field }) => (
                   <FormItem className="md:col-span-2">
@@ -207,12 +208,19 @@ const UserDetailsStep: React.FC = () => {
                 )}
               />
             </div>
-          )}
+            <div className="flex justify-center mt-8">
+              <Button type="submit" className="w-full md:w-1/3">Continue</Button>
+            </div>
+          </form>
+        </Form>
+      )}
 
-          {userType === 'working_professional' && (
+      {userType === 'working_professional' && (
+        <Form {...professionalForm}>
+          <form onSubmit={professionalForm.handleSubmit(onProfessionalSubmit)} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <FormField
-                control={form.control}
+                control={professionalForm.control}
                 name="companyName"
                 render={({ field }) => (
                   <FormItem>
@@ -225,7 +233,7 @@ const UserDetailsStep: React.FC = () => {
                 )}
               />
               <FormField
-                control={form.control}
+                control={professionalForm.control}
                 name="currentRole"
                 render={({ field }) => (
                   <FormItem>
@@ -238,7 +246,7 @@ const UserDetailsStep: React.FC = () => {
                 )}
               />
               <FormField
-                control={form.control}
+                control={professionalForm.control}
                 name="experienceYears"
                 render={({ field }) => (
                   <FormItem>
@@ -251,7 +259,7 @@ const UserDetailsStep: React.FC = () => {
                 )}
               />
               <FormField
-                control={form.control}
+                control={professionalForm.control}
                 name="domain"
                 render={({ field }) => (
                   <FormItem>
@@ -264,16 +272,14 @@ const UserDetailsStep: React.FC = () => {
                 )}
               />
             </div>
-          )}
-
-          <div className="flex justify-center mt-8">
-            <Button type="submit" className="w-full md:w-1/3">Continue</Button>
-          </div>
-        </form>
-      </Form>
+            <div className="flex justify-center mt-8">
+              <Button type="submit" className="w-full md:w-1/3">Continue</Button>
+            </div>
+          </form>
+        </Form>
+      )}
     </div>
   );
 };
 
 export default UserDetailsStep;
-

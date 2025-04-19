@@ -8,4 +8,3 @@ export const DETAILS_STEP = 'details' as const;
 export const TOPIC_STEP = 'topic' as const;
 export const EXPERIENCE_STEP = 'experience' as const;
 export const ROADMAP_STEP = 'roadmap' as const;
-
