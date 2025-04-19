@@ -15,10 +15,13 @@ const UserTypeStep: React.FC = () => {
   const handleTypeSelection = (type: UserType) => {
     if (type === 'other') {
       setUserType(type, customType);
+      // For "other" we skip the details step
+      setCurrentStep(3);
     } else {
       setUserType(type);
+      // For specific user types, we proceed to the details collection step
+      setCurrentStep(2);
     }
-    setCurrentStep(2);
   };
 
   return (
