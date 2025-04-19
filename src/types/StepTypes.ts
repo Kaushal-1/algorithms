@@ -1,6 +1,6 @@
 
 export type Step = 'userType' | 'details' | 'topic' | 'experience' | 'roadmap';
-export type ExperienceLevel = 'beginner' | 'intermediate' | 'expert';
+export type ExperienceLevel = 'beginner' | 'intermediate' | 'advanced' | 'expert';
 
 // Named string literals for comparison safety
 export const USER_TYPE_STEP = 'userType' as const;

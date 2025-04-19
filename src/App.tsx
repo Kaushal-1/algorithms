@@ -26,127 +26,130 @@ import Community from "./pages/Community";
 import PersonalizedLearning from "./pages/PersonalizedLearning";
 import LearningSession from "./pages/LearningSession";
 
-// Initialize QueryClient outside of the component to avoid recreation on renders
+// Create a new QueryClient instance
 const queryClient = new QueryClient();
 
 const App = () => {
   return (
-    <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
-        <AuthProvider>
-          <DSAProvider>
-            <LearningProfileProvider>
-              <TooltipProvider>
-                <Toaster />
-                <Sonner />
-                <Routes>
-                  <Route path="/" element={<Index />} />
-                  <Route path="/login" element={<Login />} />
-                  <Route path="/signup" element={<SignUp />} />
-                  
-                  {/* Protect personalized-learning route */}
-                  <Route 
-                    path="/personalized-learning" 
-                    element={
-                      <ProtectedRoute>
-                        <PersonalizedLearning />
-                      </ProtectedRoute>
-                    } 
-                  />
-                  
-                  {/* Add learning session route */}
-                  <Route 
-                    path="/learning-session" 
-                    element={
-                      <ProtectedRoute>
-                        <LearningSession />
-                      </ProtectedRoute>
-                    } 
-                  />
-                  <Route 
-                    path="/learning-session/:topicId" 
-                    element={
-                      <ProtectedRoute>
-                        <LearningSession />
-                      </ProtectedRoute>
-                    } 
-                  />
-                  
-                  {/* Redirect /code-review to /dsa-chat-prompt */}
-                  <Route path="/code-review" element={<Navigate to="/dsa-chat-prompt" replace />} />
-                  <Route path="/courses" element={<Navigate to="/personalized-learning" replace />} />
-                  
-                  {/* Protected routes - require authentication */}
-                  <Route 
-                    path="/dsa-chat-prompt" 
-                    element={
-                      <ProtectedRoute>
-                        <DSAChatPrompt />
-                      </ProtectedRoute>
-                    } 
-                  />
-                  <Route 
-                    path="/dsa-problem" 
-                    element={
-                      <ProtectedRoute>
-                        <DSAProtectedRoute requiresProblem={true}>
-                          <DSAProblem />
-                        </DSAProtectedRoute>
-                      </ProtectedRoute>
-                    } 
-                  />
-                  <Route 
-                    path="/dsa-reveal-answer" 
-                    element={
-                      <ProtectedRoute>
-                        <DSAProtectedRoute requiresProblem={true}>
-                          <DSARevealAnswer />
-                        </DSAProtectedRoute>
-                      </ProtectedRoute>
-                    } 
-                  />
-                  <Route 
-                    path="/code-history" 
-                    element={
-                      <ProtectedRoute>
-                        <CodeHistory />
-                      </ProtectedRoute>
-                    } 
-                  />
-                  <Route 
-                    path="/user-profile" 
-                    element={
-                      <ProtectedRoute>
-                        <UserProfile />
-                      </ProtectedRoute>
-                    } 
-                  />
-                  <Route 
-                    path="/settings" 
-                    element={
-                      <ProtectedRoute>
-                        <Settings />
-                      </ProtectedRoute>
-                    } 
-                  />
-                  <Route 
-                    path="/community" 
-                    element={
-                      <ProtectedRoute>
-                        <Community />
-                      </ProtectedRoute>
-                    } 
-                  />
-                  
-                  {/* Catch-all route */}
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
-              </TooltipProvider>
-            </LearningProfileProvider>
-          </DSAProvider>
-        </AuthProvider>
-      </BrowserRouter>
-    </QueryClientProvider>
+    // Move BrowserRouter to be the outermost wrapper
+    <BrowserRouter>
+      <React.StrictMode>
+        <QueryClientProvider client={queryClient}>
+          <AuthProvider>
+            <DSAProvider>
+              <LearningProfileProvider>
+                <TooltipProvider>
+                  <Toaster />
+                  <Sonner />
+                  <Routes>
+                    <Route path="/" element={<Index />} />
+                    <Route path="/login" element={<Login />} />
+                    <Route path="/signup" element={<SignUp />} />
+                    
+                    {/* Protect personalized-learning route */}
+                    <Route 
+                      path="/personalized-learning" 
+                      element={
+                        <ProtectedRoute>
+                          <PersonalizedLearning />
+                        </ProtectedRoute>
+                      } 
+                    />
+                    
+                    {/* Add learning session route */}
+                    <Route 
+                      path="/learning-session" 
+                      element={
+                        <ProtectedRoute>
+                          <LearningSession />
+                        </ProtectedRoute>
+                      } 
+                    />
+                    <Route 
+                      path="/learning-session/:topicId" 
+                      element={
+                        <ProtectedRoute>
+                          <LearningSession />
+                        </ProtectedRoute>
+                      } 
+                    />
+                    
+                    {/* Redirect /code-review to /dsa-chat-prompt */}
+                    <Route path="/code-review" element={<Navigate to="/dsa-chat-prompt" replace />} />
+                    <Route path="/courses" element={<Navigate to="/personalized-learning" replace />} />
+                    
+                    {/* Protected routes - require authentication */}
+                    <Route 
+                      path="/dsa-chat-prompt" 
+                      element={
+                        <ProtectedRoute>
+                          <DSAChatPrompt />
+                        </ProtectedRoute>
+                      } 
+                    />
+                    <Route 
+                      path="/dsa-problem" 
+                      element={
+                        <ProtectedRoute>
+                          <DSAProtectedRoute requiresProblem={true}>
+                            <DSAProblem />
+                          </DSAProtectedRoute>
+                        </ProtectedRoute>
+                      } 
+                    />
+                    <Route 
+                      path="/dsa-reveal-answer" 
+                      element={
+                        <ProtectedRoute>
+                          <DSAProtectedRoute requiresProblem={true}>
+                            <DSARevealAnswer />
+                          </DSAProtectedRoute>
+                        </ProtectedRoute>
+                      } 
+                    />
+                    <Route 
+                      path="/code-history" 
+                      element={
+                        <ProtectedRoute>
+                          <CodeHistory />
+                        </ProtectedRoute>
+                      } 
+                    />
+                    <Route 
+                      path="/user-profile" 
+                      element={
+                        <ProtectedRoute>
+                          <UserProfile />
+                        </ProtectedRoute>
+                      } 
+                    />
+                    <Route 
+                      path="/settings" 
+                      element={
+                        <ProtectedRoute>
+                          <Settings />
+                        </ProtectedRoute>
+                      } 
+                    />
+                    <Route 
+                      path="/community" 
+                      element={
+                        <ProtectedRoute>
+                          <Community />
+                        </ProtectedRoute>
+                      } 
+                    />
+                    
+                    {/* Catch-all route */}
+                    <Route path="*" element={<NotFound />} />
+                  </Routes>
+                </TooltipProvider>
+              </LearningProfileProvider>
+            </DSAProvider>
+          </AuthProvider>
+        </QueryClientProvider>
+      </React.StrictMode>
+    </BrowserRouter>
   );
 };
 
