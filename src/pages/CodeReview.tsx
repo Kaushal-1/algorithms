@@ -15,7 +15,7 @@ const CodeReview: React.FC = () => {
       
       <main className="flex-grow pt-20 px-4 pb-8 max-w-[1200px] mx-auto w-full">
         <div className="mb-6">
-          <h1 className="text-2xl font-bold text-foreground">DSA Guru</h1>
+          <h1 className="text-2xl font-bold text-foreground">DSA Trainer</h1>
           <p className="text-muted-foreground">Improve your coding skills with our AI-powered DSA training platform</p>
         </div>
         

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
@@ -20,6 +21,7 @@ const DSARevealAnswer: React.FC = () => {
   const [language, setLanguage] = useState<string>('javascript');
 
   useEffect(() => {
+    // If no problem or solution, fetch solution
     if (currentProblem && !solution) {
       fetchSolution();
     } else if (solution) {
@@ -59,6 +61,7 @@ const DSARevealAnswer: React.FC = () => {
     navigate('/dsa-chat-prompt');
   };
 
+  // If there's no problem in context, redirect back to prompt page
   if (!currentProblem) {
     navigate('/dsa-chat-prompt');
     return null;
@@ -70,7 +73,7 @@ const DSARevealAnswer: React.FC = () => {
       
       <main className="flex-grow pt-20 px-4 pb-8 max-w-[1800px] mx-auto w-full">
         <div className="mb-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-foreground">DSA Guru</h1>
+          <h1 className="text-2xl font-bold text-foreground">DSA Trainer</h1>
           <div className="flex gap-3">
             <Button 
               onClick={handleBackToProblem} 

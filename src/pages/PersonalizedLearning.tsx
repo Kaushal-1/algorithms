@@ -5,17 +5,8 @@ import LearningFlowContainer from '@/components/learning-flow/LearningFlowContai
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft } from 'lucide-react';
-import { useLearningProfile } from '@/contexts/LearningProfileContext';
 
 const PersonalizedLearning: React.FC = () => {
-  // Reset the learning profile state when navigating to this page
-  // to avoid the loop issue when coming back to the experience step
-  const { resetProfile } = useLearningProfile();
-  
-  React.useEffect(() => {
-    resetProfile();
-  }, []);
-  
   return (
     <div className="min-h-screen bg-algos-dark">
       <Navbar />
