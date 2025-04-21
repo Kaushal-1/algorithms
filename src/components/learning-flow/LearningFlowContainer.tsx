@@ -1,25 +1,29 @@
-
 import React from 'react';
 import { useLearningProfile } from '@/contexts/LearningProfileContext';
 import UserTypeStep from './UserTypeStep';
 import TopicSelectionStep from './TopicSelectionStep';
 import ExperienceLevelStep from './ExperienceLevelStep';
 import RoadmapGenerator from '@/components/RoadmapGenerator';
+import UserDetailsStep from './UserDetailsStep';
 
 const LearningFlowContainer: React.FC = () => {
   const { currentStep, userProfile } = useLearningProfile();
 
-  // Render the appropriate component based on the current step
   const renderStep = () => {
     switch (currentStep) {
       case 1:
         return <UserTypeStep />;
       case 2:
-        return <TopicSelectionStep />;
+        if (userProfile?.userType === 'other') {
+          setTimeout(() => setCurrentStep(3), 0);
+          return null;
+        }
+        return <UserDetailsStep />;
       case 3:
-        return <ExperienceLevelStep />;
+        return <TopicSelectionStep />;
       case 4:
-        // Use the existing RoadmapGenerator but with pre-filled values
+        return <ExperienceLevelStep />;
+      case 5:
         return <RoadmapGenerator initialProfile={userProfile} />;
       default:
         return <UserTypeStep />;
@@ -30,19 +34,19 @@ const LearningFlowContainer: React.FC = () => {
     <div className="w-full max-w-4xl mx-auto">
       <div className="mb-8">
         <div className="flex justify-between items-center">
-          {currentStep < 4 && (
+          {currentStep < 5 && (
             <div className="w-full">
               <div className="relative pt-1">
                 <div className="flex mb-2 items-center justify-between">
                   <div>
                     <span className="text-xs font-semibold inline-block py-1 px-2 uppercase rounded-full bg-primary text-primary-foreground">
-                      Step {currentStep} of 3
+                      Step {currentStep} of 4
                     </span>
                   </div>
                 </div>
                 <div className="overflow-hidden h-2 mb-4 text-xs flex rounded bg-primary/20">
                   <div
-                    style={{ width: `${(currentStep / 3) * 100}%` }}
+                    style={{ width: `${(currentStep / 4) * 100}%` }}
                     className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-primary"
                   ></div>
                 </div>
@@ -51,7 +55,6 @@ const LearningFlowContainer: React.FC = () => {
           )}
         </div>
       </div>
-
       {renderStep()}
     </div>
   );

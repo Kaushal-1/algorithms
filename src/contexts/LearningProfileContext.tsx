@@ -1,10 +1,14 @@
-
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { UserLearningProfile, UserType, ExperienceLevel, KnownTopic } from '../types/UserProfile';
+
+export interface UserDetails {
+  [key: string]: string | number;
+}
 
 interface LearningProfileContextType {
   userProfile: UserLearningProfile | null;
   setUserType: (type: UserType, customType?: string) => void;
+  setUserDetails: (details: UserDetails) => void;
   setTopic: (topic: string) => void;
   setExperienceLevel: (level: ExperienceLevel) => void;
   setKnownTopics: (topics: KnownTopic[]) => void;
@@ -29,7 +33,6 @@ export const LearningProfileProvider: React.FC<{ children: ReactNode }> = ({ chi
   const [userProfile, setUserProfile] = useState<UserLearningProfile | null>(null);
   const [currentStep, setCurrentStep] = useState<number>(1);
 
-  // Load from localStorage on initial mount
   useEffect(() => {
     const savedProfile = localStorage.getItem('userLearningProfile');
     if (savedProfile) {
@@ -39,7 +42,6 @@ export const LearningProfileProvider: React.FC<{ children: ReactNode }> = ({ chi
     }
   }, []);
 
-  // Save profile changes to localStorage
   useEffect(() => {
     if (userProfile) {
       localStorage.setItem('userLearningProfile', JSON.stringify(userProfile));
@@ -48,8 +50,15 @@ export const LearningProfileProvider: React.FC<{ children: ReactNode }> = ({ chi
 
   const setUserType = (type: UserType, customType?: string) => {
     setUserProfile(prev => {
-      if (!prev) return { ...defaultProfile, userType: type, customUserType: customType };
-      return { ...prev, userType: type, customUserType: customType, updatedAt: new Date() };
+      if (!prev) return { ...defaultProfile, userType: type, customUserType: customType, details: {} };
+      return { ...prev, userType: type, customUserType: customType, updatedAt: new Date(), details: {} };
+    });
+  };
+
+  const setUserDetails = (details: UserDetails) => {
+    setUserProfile(prev => {
+      if (!prev) return { ...defaultProfile, details };
+      return { ...prev, details, updatedAt: new Date() };
     });
   };
 
@@ -80,8 +89,6 @@ export const LearningProfileProvider: React.FC<{ children: ReactNode }> = ({ chi
   };
 
   const saveProfile = () => {
-    // This is where we would save to backend
-    // For now, just ensure it's saved to localStorage
     if (userProfile) {
       localStorage.setItem('userLearningProfile', JSON.stringify(userProfile));
     }
@@ -92,6 +99,7 @@ export const LearningProfileProvider: React.FC<{ children: ReactNode }> = ({ chi
       value={{
         userProfile,
         setUserType,
+        setUserDetails,
         setTopic,
         setExperienceLevel,
         setKnownTopics,
