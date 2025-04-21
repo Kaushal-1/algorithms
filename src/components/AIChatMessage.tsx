@@ -2,8 +2,6 @@
 import React from 'react';
 import { cn } from '@/lib/utils';
 import { Bot, User } from 'lucide-react';
-import ReactMarkdown from 'react-markdown';
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 
 interface ChatMessage {
   id: string;
@@ -20,6 +18,45 @@ interface AIChatMessageProps {
 const AIChatMessage: React.FC<AIChatMessageProps> = ({ message }) => {
   const isAssistant = message.role === 'assistant';
   
+  // Function to render content with code blocks if present
+  const renderMessageContent = () => {
+    if (!message.isCode) {
+      return (
+        <div className="whitespace-pre-wrap markdown-content">
+          {message.content}
+        </div>
+      );
+    }
+    
+    // Handle code blocks in messages
+    let parts = message.content.split(/```(\w+)?\n([\s\S]*?)```/g);
+    if (parts.length === 1) {
+      return <div className="whitespace-pre-wrap">{message.content}</div>;
+    }
+    
+    return (
+      <div className="whitespace-pre-wrap">
+        {parts.map((part, i) => {
+          if (i % 4 === 0) {
+            // Text before code block
+            return part ? <div key={i}>{part}</div> : null;
+          } else if (i % 4 === 1) {
+            // Language identifier, skip in rendering
+            return null;
+          } else if (i % 4 === 2) {
+            // Code content
+            return (
+              <pre key={i} className="p-3 bg-algos-darker rounded-md my-2 overflow-x-auto">
+                <code className="text-sm text-accent font-mono">{part}</code>
+              </pre>
+            );
+          }
+          return null;
+        })}
+      </div>
+    );
+  };
+  
   return (
     <div 
       className={cn(
@@ -28,56 +65,23 @@ const AIChatMessage: React.FC<AIChatMessageProps> = ({ message }) => {
       )}
     >
       {isAssistant && (
-        <Avatar className="w-8 h-8">
-          <AvatarImage 
-            src="/lovable-uploads/919aa0d0-677d-46b3-b40b-99ed5a73f051.png" 
-            alt="AI Guru Avatar" 
-          />
-          <AvatarFallback>
-            <Bot className="h-4 w-4 text-primary" />
-          </AvatarFallback>
-        </Avatar>
+        <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
+          <Bot className="h-4 w-4 text-primary" />
+        </div>
       )}
       
       <div className="flex-1 overflow-hidden">
         <div className="flex items-center mb-1">
           <span className="font-medium text-sm">
-            {isAssistant ? "AI Guru" : "You"}
+            {isAssistant ? "AI Tutor" : "You"}
           </span>
           <span className="text-xs text-muted-foreground ml-2">
             {new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
           </span>
         </div>
         
-        <div className="text-sm prose prose-invert max-w-none">
-          <ReactMarkdown
-            components={{
-              h1: ({node, ...props}) => <h1 className="text-lg font-bold mb-2" {...props} />,
-              h2: ({node, ...props}) => <h2 className="text-base font-bold mb-2" {...props} />,
-              h3: ({node, ...props}) => <h3 className="text-sm font-bold mb-2" {...props} />,
-              h4: ({node, ...props}) => <h4 className="text-sm font-semibold mb-1" {...props} />,
-              p: ({node, ...props}) => <p className="mb-2" {...props} />,
-              ul: ({node, ...props}) => <ul className="list-disc pl-4 mb-2" {...props} />,
-              ol: ({node, ...props}) => <ol className="list-decimal pl-4 mb-2" {...props} />,
-              li: ({node, ...props}) => <li className="mb-1" {...props} />,
-              code: ({node, className, children, ...props}) => {
-                const match = /language-(\w+)/.exec(className || '');
-                return !className ? (
-                  <code className="bg-muted px-1 py-0.5 rounded text-sm" {...props}>
-                    {children}
-                  </code>
-                ) : (
-                  <pre className="p-3 bg-muted rounded-md my-2 overflow-x-auto">
-                    <code className="text-sm font-mono" {...props}>
-                      {children}
-                    </code>
-                  </pre>
-                );
-              },
-            }}
-          >
-            {message.content}
-          </ReactMarkdown>
+        <div className="text-sm">
+          {renderMessageContent()}
         </div>
       </div>
       

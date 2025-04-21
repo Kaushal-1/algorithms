@@ -14,7 +14,7 @@ const PersonalizedLearning: React.FC = () => {
       <div className="pt-20 px-4 md:px-8 pb-16">
         <div className="max-w-6xl mx-auto">
           <div className="mb-6 flex justify-between items-center">
-            <h1 className="text-2xl font-bold">AI Guru Learning Path</h1>
+            <h1 className="text-2xl font-bold">Personalized Learning Path</h1>
             
             <Link to="/">
               <Button variant="ghost" size="sm">

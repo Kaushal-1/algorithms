@@ -9,8 +9,9 @@ import { ChevronLeft, RotateCcw, Save, FileDown } from 'lucide-react';
 import { UserLearningProfile } from '@/types/UserProfile';
 import { jsPDF } from 'jspdf';
 import { toast } from 'sonner';
-import { EXPERIENCE_STEP, TOPIC_STEP, ROADMAP_STEP } from '@/types/StepTypes';
-import type { ExperienceLevel, Step } from '@/types/StepTypes';
+
+type ExperienceLevel = 'beginner' | 'intermediate' | 'advanced';
+type Step = 'experience' | 'topic' | 'roadmap';
 
 interface RoadmapGeneratorProps {
   initialProfile?: UserLearningProfile | null;
@@ -18,7 +19,7 @@ interface RoadmapGeneratorProps {
 
 const RoadmapGenerator: React.FC<RoadmapGeneratorProps> = ({ initialProfile }) => {
   // Flow state
-  const [currentStep, setCurrentStep] = useState<Step>(initialProfile ? ROADMAP_STEP : EXPERIENCE_STEP);
+  const [currentStep, setCurrentStep] = useState<Step>(initialProfile ? 'roadmap' : 'experience');
   const [selectedExperience, setSelectedExperience] = useState<ExperienceLevel | null>(
     initialProfile ? (initialProfile.experienceLevel === 'expert' ? 'advanced' : initialProfile.experienceLevel) as ExperienceLevel : null
   );
@@ -43,7 +44,7 @@ const RoadmapGenerator: React.FC<RoadmapGeneratorProps> = ({ initialProfile }) =
   
   const handleExperienceSelect = (level: ExperienceLevel) => {
     setSelectedExperience(level);
-    setCurrentStep(TOPIC_STEP);
+    setCurrentStep('topic');
   };
   
   const handleTopicSubmit = async (topic: string) => {
@@ -59,13 +60,10 @@ const RoadmapGenerator: React.FC<RoadmapGeneratorProps> = ({ initialProfile }) =
       // Add an ID to the roadmap for reference
       enhancedRoadmap.id = `roadmap-${Date.now()}`;
       
-      // Save the roadmap to localStorage for use in learning sessions
-      localStorage.setItem('currentRoadmap', JSON.stringify(enhancedRoadmap));
-      
       setRoadmap(enhancedRoadmap);
       setCurrentRoadmapStep(1);
       setCompletedSteps([]);
-      setCurrentStep(ROADMAP_STEP);
+      setCurrentStep('roadmap');
     } catch (error) {
       console.error('Error generating roadmap:', error);
       toast.error('Error generating roadmap. Please try again.');
@@ -359,7 +357,7 @@ Return only JSON without explanations or markdown.`;
   };
   
   const handleReset = () => {
-    setCurrentStep(EXPERIENCE_STEP);
+    setCurrentStep('experience');
     setSelectedExperience(null);
     setSelectedTopic('');
     setRoadmap(null);
@@ -367,10 +365,10 @@ Return only JSON without explanations or markdown.`;
   };
   
   const handleBack = () => {
-    if (currentStep === TOPIC_STEP) {
-      setCurrentStep(EXPERIENCE_STEP);
-    } else if (currentStep === ROADMAP_STEP) {
-      setCurrentStep(TOPIC_STEP);
+    if (currentStep === 'topic') {
+      setCurrentStep('experience');
+    } else if (currentStep === 'roadmap') {
+      setCurrentStep('topic');
     }
   };
 
@@ -471,84 +469,6 @@ Return only JSON without explanations or markdown.`;
     toast.success('PDF successfully downloaded!');
   };
   
-  const startLearningSession = () => {
-    // Navigate to the first topic in the learning session
-    window.location.href = '/learning-session/1';
-  };
-  
-  if (currentStep === ROADMAP_STEP && roadmap) {
-    return (
-      <div className="space-y-8">
-        {/* Header with navigation */}
-        <div className="flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-white font-heading">
-            AI Learning Roadmap <span className="text-primary">.</span>
-          </h1>
-          
-          <div className="flex gap-2">
-            {currentStep !== EXPERIENCE_STEP && !initialProfile && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleBack}
-                className="bg-card/40 border-border/50 hover:bg-card/60"
-              >
-                <ChevronLeft className="h-4 w-4 mr-2" />
-                Back
-              </Button>
-            )}
-            
-            {roadmap && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={generatePdf}
-                className="bg-card/40 border-border/50 hover:bg-card/60"
-              >
-                <FileDown className="h-4 w-4 mr-2" />
-                Download PDF
-              </Button>
-            )}
-            
-            {!initialProfile && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleReset}
-                className="bg-card/40 border-border/50 hover:bg-card/60"
-              >
-                <RotateCcw className="h-4 w-4 mr-2" />
-                Start Over
-              </Button>
-            )}
-          </div>
-        </div>
-        
-        {/* Roadmap Display */}
-        {currentStep === ROADMAP_STEP && roadmap && (
-          <div className="space-y-8">
-            <RoadmapDisplay
-              roadmap={roadmap}
-              currentStep={currentRoadmapStep}
-              onStepComplete={handleStepComplete}
-              completedSteps={completedSteps}
-            />
-            
-            <div className="flex justify-center mt-8">
-              <Button
-                size="lg"
-                onClick={startLearningSession}
-                className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white px-8"
-              >
-                Start Learning with AI Guru
-              </Button>
-            </div>
-          </div>
-        )}
-      </div>
-    );
-  }
-  
   return (
     <div className="space-y-8">
       {/* Header with navigation */}
@@ -558,7 +478,7 @@ Return only JSON without explanations or markdown.`;
         </h1>
         
         <div className="flex gap-2">
-          {currentStep !== EXPERIENCE_STEP && !initialProfile && (
+          {currentStep !== 'experience' && !initialProfile && (
             <Button
               variant="outline"
               size="sm"
@@ -597,7 +517,7 @@ Return only JSON without explanations or markdown.`;
       </div>
       
       {/* Step 1: Experience Selection */}
-      {currentStep === EXPERIENCE_STEP && (
+      {currentStep === 'experience' && (
         <ExperienceSelector
           selectedLevel={selectedExperience}
           onSelect={handleExperienceSelect}
@@ -605,7 +525,7 @@ Return only JSON without explanations or markdown.`;
       )}
       
       {/* Step 2: Topic Input */}
-      {currentStep === TOPIC_STEP && (
+      {currentStep === 'topic' && (
         <TopicInput
           onSubmit={handleTopicSubmit}
           isLoading={isGenerating}
@@ -613,7 +533,7 @@ Return only JSON without explanations or markdown.`;
       )}
       
       {/* Step 3 & 4: Roadmap Display and Interactive Guide */}
-      {currentStep === ROADMAP_STEP && roadmap && (
+      {currentStep === 'roadmap' && roadmap && (
         <div className="space-y-8">
           <RoadmapDisplay
             roadmap={roadmap}
