@@ -23,8 +23,8 @@ import UserProfile from "./pages/UserProfile";
 import Settings from "./pages/Settings";
 import Community from "./pages/Community";
 import PersonalizedLearning from "./pages/PersonalizedLearning";
+import PersonalizedAITutor from "./pages/PersonalizedAITutor";
 
-// Initialize QueryClient outside of the component to avoid recreation on renders
 const queryClient = new QueryClient();
 
 const App = () => {
@@ -42,8 +42,7 @@ const App = () => {
                     <Route path="/" element={<Index />} />
                     <Route path="/login" element={<Login />} />
                     <Route path="/signup" element={<SignUp />} />
-                    
-                    {/* Protect personalized-learning route */}
+
                     <Route 
                       path="/personalized-learning" 
                       element={
@@ -52,12 +51,18 @@ const App = () => {
                         </ProtectedRoute>
                       } 
                     />
-                    
-                    {/* Redirect /code-review to /dsa-chat-prompt */}
+                    <Route 
+                      path="/personalized-ai-tutor"
+                      element={
+                        <ProtectedRoute>
+                          <PersonalizedAITutor />
+                        </ProtectedRoute>
+                      }
+                    />
+
                     <Route path="/code-review" element={<Navigate to="/dsa-chat-prompt" replace />} />
                     <Route path="/courses" element={<Navigate to="/personalized-learning" replace />} />
-                    
-                    {/* Protected routes - require authentication */}
+
                     <Route 
                       path="/dsa-chat-prompt" 
                       element={
@@ -118,8 +123,7 @@ const App = () => {
                         </ProtectedRoute>
                       } 
                     />
-                    
-                    {/* Catch-all route */}
+
                     <Route path="*" element={<NotFound />} />
                   </Routes>
                 </TooltipProvider>
