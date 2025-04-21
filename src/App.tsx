@@ -26,15 +26,14 @@ import Community from "./pages/Community";
 import PersonalizedLearning from "./pages/PersonalizedLearning";
 import LearningSession from "./pages/LearningSession";
 
-// Create a new QueryClient instance
+// Initialize QueryClient outside of the component to avoid recreation on renders
 const queryClient = new QueryClient();
 
 const App = () => {
   return (
-    // Move BrowserRouter to be the outermost wrapper
-    <BrowserRouter>
-      <React.StrictMode>
-        <QueryClientProvider client={queryClient}>
+    <React.StrictMode>
+      <QueryClientProvider client={queryClient}>
+        <BrowserRouter>
           <AuthProvider>
             <DSAProvider>
               <LearningProfileProvider>
@@ -147,9 +146,9 @@ const App = () => {
               </LearningProfileProvider>
             </DSAProvider>
           </AuthProvider>
-        </QueryClientProvider>
-      </React.StrictMode>
-    </BrowserRouter>
+        </BrowserRouter>
+      </QueryClientProvider>
+    </React.StrictMode>
   );
 };
 
