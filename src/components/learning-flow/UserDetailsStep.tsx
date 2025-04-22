@@ -42,44 +42,40 @@ const UserDetailsStep: React.FC = () => {
   const { userProfile, setUserDetails, setCurrentStep } = useLearningProfile();
 
   const isCollegeStudent = userProfile?.userType === 'college_student';
-  const schema = isCollegeStudent ? collegeStudentSchema : workingProfessionalSchema;
-
-  // Prepare default values with proper type handling
-  const getDefaultValues = () => {
-    if (isCollegeStudent) {
-      // College student
-      return {
-        collegeName: userProfile?.collegeDetails?.collegeName || '',
-        course: userProfile?.collegeDetails?.course || '',
-        year: userProfile?.collegeDetails?.year || '',
-        phoneNumber: userProfile?.collegeDetails?.phoneNumber || '',
-        dob: userProfile?.collegeDetails?.dob || undefined,
-      };
-    } else {
-      // Working professional
-      return {
-        company: userProfile?.professionalDetails?.company || '',
-        designation: userProfile?.professionalDetails?.designation || '',
-        experience: userProfile?.professionalDetails?.experience || '',
-        qualification: userProfile?.professionalDetails?.qualification || '',
-        phoneNumber: userProfile?.professionalDetails?.phoneNumber || '',
-        dob: userProfile?.professionalDetails?.dob || undefined,
-      };
-    }
-  };
+  
+  // Use different default values based on user type
+  let defaultValues = {};
+  
+  if (isCollegeStudent) {
+    defaultValues = {
+      collegeName: userProfile?.collegeDetails?.collegeName || '',
+      course: userProfile?.collegeDetails?.course || '',
+      year: userProfile?.collegeDetails?.year || '',
+      phoneNumber: userProfile?.collegeDetails?.phoneNumber || '',
+      dob: userProfile?.collegeDetails?.dob || undefined,
+    };
+  } else {
+    defaultValues = {
+      company: userProfile?.professionalDetails?.company || '',
+      designation: userProfile?.professionalDetails?.designation || '',
+      experience: userProfile?.professionalDetails?.experience || '',
+      qualification: userProfile?.professionalDetails?.qualification || '',
+      phoneNumber: userProfile?.professionalDetails?.phoneNumber || '',
+      dob: userProfile?.professionalDetails?.dob || undefined,
+    };
+  }
 
   const form = useForm({
-    resolver: zodResolver(schema),
-    defaultValues: getDefaultValues(),
+    resolver: zodResolver(isCollegeStudent ? collegeStudentSchema : workingProfessionalSchema),
+    defaultValues,
   });
 
   const onSubmit = async (values: CollegeFormValues | ProfessionalFormValues) => {
-    // Convert the form values to the correct types
     if (isCollegeStudent) {
-      const collegeDetails: CollegeStudentDetails = values as CollegeStudentDetails;
+      const collegeDetails: CollegeStudentDetails = values as CollegeFormValues;
       setUserDetails(collegeDetails);
     } else {
-      const professionalDetails: WorkingProfessionalDetails = values as WorkingProfessionalDetails;
+      const professionalDetails: WorkingProfessionalDetails = values as ProfessionalFormValues;
       setUserDetails(professionalDetails);
     }
     setCurrentStep(3); // Move to topic selection
