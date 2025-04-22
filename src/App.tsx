@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -23,8 +24,9 @@ import UserProfile from "./pages/UserProfile";
 import Settings from "./pages/Settings";
 import Community from "./pages/Community";
 import PersonalizedLearning from "./pages/PersonalizedLearning";
-import PersonalizedAITutor from "./pages/PersonalizedAITutor";
+import LearningSession from "./pages/LearningSession";
 
+// Initialize QueryClient outside of the component to avoid recreation on renders
 const queryClient = new QueryClient();
 
 const App = () => {
@@ -42,7 +44,8 @@ const App = () => {
                     <Route path="/" element={<Index />} />
                     <Route path="/login" element={<Login />} />
                     <Route path="/signup" element={<SignUp />} />
-
+                    
+                    {/* Protect personalized-learning route */}
                     <Route 
                       path="/personalized-learning" 
                       element={
@@ -51,18 +54,30 @@ const App = () => {
                         </ProtectedRoute>
                       } 
                     />
+                    
+                    {/* Add learning session route */}
                     <Route 
-                      path="/personalized-ai-tutor"
+                      path="/learning-session" 
                       element={
                         <ProtectedRoute>
-                          <PersonalizedAITutor />
+                          <LearningSession />
                         </ProtectedRoute>
-                      }
+                      } 
                     />
-
+                    <Route 
+                      path="/learning-session/:topicId" 
+                      element={
+                        <ProtectedRoute>
+                          <LearningSession />
+                        </ProtectedRoute>
+                      } 
+                    />
+                    
+                    {/* Redirect /code-review to /dsa-chat-prompt */}
                     <Route path="/code-review" element={<Navigate to="/dsa-chat-prompt" replace />} />
                     <Route path="/courses" element={<Navigate to="/personalized-learning" replace />} />
-
+                    
+                    {/* Protected routes - require authentication */}
                     <Route 
                       path="/dsa-chat-prompt" 
                       element={
@@ -123,7 +138,8 @@ const App = () => {
                         </ProtectedRoute>
                       } 
                     />
-
+                    
+                    {/* Catch-all route */}
                     <Route path="*" element={<NotFound />} />
                   </Routes>
                 </TooltipProvider>

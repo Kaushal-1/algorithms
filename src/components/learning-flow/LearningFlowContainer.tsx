@@ -5,19 +5,9 @@ import UserTypeStep from './UserTypeStep';
 import TopicSelectionStep from './TopicSelectionStep';
 import ExperienceLevelStep from './ExperienceLevelStep';
 import RoadmapGenerator from '@/components/RoadmapGenerator';
-import { useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
 
 const LearningFlowContainer: React.FC = () => {
-  const { currentStep, userProfile, setCurrentStep } = useLearningProfile();
-  const [roadmapData, setRoadmapData] = React.useState(null);
-  const navigate = useNavigate();
-
-  // This function will be called when the roadmap is generated in step 4
-  // We replace RoadmapGenerator's "onFinish" prop to set roadmapData here
-  const handleRoadmapReady = (data: any) => {
-    setRoadmapData(data);
-  };
+  const { currentStep, userProfile } = useLearningProfile();
 
   // Render the appropriate component based on the current step
   const renderStep = () => {
@@ -29,31 +19,8 @@ const LearningFlowContainer: React.FC = () => {
       case 3:
         return <ExperienceLevelStep />;
       case 4:
-        // Show only the roadmap and a button to continue
-        return (
-          <div className="flex flex-col gap-6 items-center">
-            <RoadmapGenerator
-              initialProfile={userProfile}
-              onlyShowRoadmap
-              onRoadmapReady={handleRoadmapReady}
-            />
-            <Button
-              className="mt-4 w-full max-w-xs"
-              size="lg"
-              onClick={() => {
-                navigate("/personalized-ai-tutor", {
-                  state: {
-                    roadmap: roadmapData,
-                    profile: userProfile,
-                  }
-                });
-              }}
-              disabled={!roadmapData}
-            >
-              Move to Next Step
-            </Button>
-          </div>
-        );
+        // Use the existing RoadmapGenerator but with pre-filled values
+        return <RoadmapGenerator initialProfile={userProfile} />;
       default:
         return <UserTypeStep />;
     }
@@ -84,6 +51,7 @@ const LearningFlowContainer: React.FC = () => {
           )}
         </div>
       </div>
+
       {renderStep()}
     </div>
   );

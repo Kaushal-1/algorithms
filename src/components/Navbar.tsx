@@ -2,7 +2,7 @@
 import React from 'react';
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Github, LogOut, User } from "lucide-react";
+import { Github, Home, LogOut, User } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from '@/contexts/AuthContext';
 import {
@@ -22,17 +22,25 @@ const Navbar = () => {
   return (
     <nav className="py-4 px-4 md:px-8 w-full fixed top-0 bg-algos-dark/90 backdrop-blur-sm z-50 border-b border-border">
       <div className="max-w-7xl mx-auto flex justify-between items-center">
-        <Link to="/" className="flex items-center">
+        <Link to="/" className="flex items-center space-x-2">
           <span className="text-2xl font-bold text-white font-heading">
             ALGORITHMS<span className="text-primary">.</span>
           </span>
         </Link>
         
         <div className="hidden md:flex items-center space-x-8">
-          <Link to="/courses" className={`text-sm transition-colors ${location.pathname === '/courses' ? 'text-primary' : 'text-foreground/80 hover:text-primary'}`}>
-            AI Tutor
+          <Link to="/" className={`text-sm transition-colors flex items-center gap-2 ${location.pathname === '/' ? 'text-primary' : 'text-foreground/80 hover:text-primary'}`}>
+            <Home className="h-4 w-4" />
+            Home
           </Link>
-          <Link to="/code-review" className={`text-sm transition-colors ${location.pathname === '/code-review' ? 'text-primary' : 'text-foreground/80 hover:text-primary'}`}>
+          <Link to="/personalized-learning" className={`text-sm transition-colors flex items-center gap-2 ${location.pathname === '/personalized-learning' ? 'text-primary' : 'text-foreground/80 hover:text-primary'}`}>
+            <Avatar className="h-5 w-5">
+              <AvatarImage src="/ai-guru-avatar.png" alt="AI Guru" />
+              <AvatarFallback>AI</AvatarFallback>
+            </Avatar>
+            AI Guru
+          </Link>
+          <Link to="/dsa-chat-prompt" className={`text-sm transition-colors ${location.pathname === '/dsa-chat-prompt' ? 'text-primary' : 'text-foreground/80 hover:text-primary'}`}>
             DSA Trainer
           </Link>
           <Link to="/code-history" className={`text-sm transition-colors ${location.pathname === '/code-history' ? 'text-primary' : 'text-foreground/80 hover:text-primary'}`}>

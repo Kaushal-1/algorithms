@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -36,7 +35,6 @@ const StepwiseAIGuide: React.FC<StepwiseAIGuideProps> = ({
   
   const currentStepData = roadmap.steps.find(step => step.step === currentStep);
   
-  // Generate initial message when currentStep changes
   useEffect(() => {
     if (currentStepData) {
       const initialMessage: ChatMessage = {
@@ -50,7 +48,6 @@ const StepwiseAIGuide: React.FC<StepwiseAIGuideProps> = ({
     }
   }, [currentStep, currentStepData]);
   
-  // Scroll to bottom when messages change
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
@@ -91,17 +88,16 @@ const StepwiseAIGuide: React.FC<StepwiseAIGuideProps> = ({
   };
   
   const callGroqApi = async (prompt: string, stepData?: RoadmapStep): Promise<ChatMessage> => {
-    // Hardcoded Groq API key
     const GROQ_API_KEY = "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";
     
     const previousMessages = messages
-      .slice(-6) // Only include the last 6 messages for context
+      .slice(-6)
       .map(msg => ({
         role: msg.role,
         content: msg.content
       }));
       
-    let systemPrompt = `You are an expert AI tutor specializing in personalized education. You are currently guiding the student through Step ${currentStep}: ${stepData?.title}. Focus your explanations on this specific topic. When showing code, make sure to use proper markdown formatting with \`\`\`language code blocks. Keep your responses clear, educational, and specific to the current learning step.`;
+    let systemPrompt = `You are an expert AI Guru specializing in personalized education. You are currently guiding the student through Step ${currentStep}: ${stepData?.title}. Focus your explanations on this specific topic. When showing code, make sure to use proper markdown formatting with \`\`\`language code blocks. Keep your responses clear, educational, and specific to the current learning step.`;
       
     const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
@@ -145,7 +141,6 @@ const StepwiseAIGuide: React.FC<StepwiseAIGuideProps> = ({
 
   const saveSession = () => {
     try {
-      // Create a session object
       const session = {
         id: `session-${Date.now()}`,
         title: `${roadmap.topic} - Step ${currentStep}: ${currentStepData?.title || 'Learning'}`,
@@ -156,13 +151,10 @@ const StepwiseAIGuide: React.FC<StepwiseAIGuideProps> = ({
         createdAt: new Date(),
       };
       
-      // Get existing sessions from localStorage
       const existingSessions = JSON.parse(localStorage.getItem('chatSessions') || '[]');
       
-      // Add new session
       const updatedSessions = [session, ...existingSessions];
       
-      // Save to localStorage
       localStorage.setItem('chatSessions', JSON.stringify(updatedSessions));
       
       toast.success('Chat session saved successfully!');
@@ -200,7 +192,6 @@ const StepwiseAIGuide: React.FC<StepwiseAIGuideProps> = ({
           </p>
         </div>
         
-        {/* Messages Container */}
         <div className="flex-1 overflow-y-auto p-4 space-y-4">
           {messages.map((message) => (
             <AIChatMessage 
@@ -218,7 +209,6 @@ const StepwiseAIGuide: React.FC<StepwiseAIGuideProps> = ({
           <div ref={messagesEndRef} />
         </div>
         
-        {/* Input Area */}
         <div className="p-4 border-t border-border/50 bg-muted/30">
           <div className="flex items-center space-x-2">
             <Input
