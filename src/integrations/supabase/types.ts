@@ -9,6 +9,97 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      known_subtopics: {
+        Row: {
+          created_at: string
+          id: string
+          subtopic_name: string
+          user_topic_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          subtopic_name: string
+          user_topic_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          subtopic_name?: string
+          user_topic_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "known_subtopics_user_topic_id_fkey"
+            columns: ["user_topic_id"]
+            isOneToOne: false
+            referencedRelation: "user_topics"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      learning_materials: {
+        Row: {
+          content: Json
+          created_at: string
+          id: string
+          type: string
+          updated_at: string
+          user_topic_id: string
+        }
+        Insert: {
+          content: Json
+          created_at?: string
+          id?: string
+          type: string
+          updated_at?: string
+          user_topic_id: string
+        }
+        Update: {
+          content?: Json
+          created_at?: string
+          id?: string
+          type?: string
+          updated_at?: string
+          user_topic_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "learning_materials_user_topic_id_fkey"
+            columns: ["user_topic_id"]
+            isOneToOne: false
+            referencedRelation: "user_topics"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      learning_profiles: {
+        Row: {
+          created_at: string
+          id: string
+          other_type_description: string | null
+          updated_at: string
+          user_id: string
+          user_type: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          other_type_description?: string | null
+          updated_at?: string
+          user_id: string
+          user_type: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          other_type_description?: string | null
+          updated_at?: string
+          user_id?: string
+          user_type?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -35,6 +126,66 @@ export type Database = {
           username?: string | null
         }
         Relationships: []
+      }
+      topics: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
+      user_topics: {
+        Row: {
+          created_at: string
+          expertise_level: string
+          id: string
+          learning_profile_id: string
+          topic_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          expertise_level: string
+          id?: string
+          learning_profile_id: string
+          topic_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          expertise_level?: string
+          id?: string
+          learning_profile_id?: string
+          topic_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_topics_learning_profile_id_fkey"
+            columns: ["learning_profile_id"]
+            isOneToOne: false
+            referencedRelation: "learning_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_topics_topic_id_fkey"
+            columns: ["topic_id"]
+            isOneToOne: false
+            referencedRelation: "topics"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
