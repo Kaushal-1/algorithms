@@ -21,6 +21,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useLearningProfile } from '@/contexts/LearningProfileContext';
+import { SchoolStudentDetails, CollegeStudentDetails, WorkingProfessionalDetails } from '@/types/UserProfile';
 
 const schoolStudentSchema = z.object({
   schoolName: z.string().min(2, 'School name is required'),
@@ -54,7 +55,7 @@ type ProfessionalFormValues = z.infer<typeof workingProfessionalSchema>;
 const UserDetailsStep: React.FC = () => {
   const { userProfile, setCurrentStep, updateUserProfile } = useLearningProfile();
   
-  const getSchoolFormDefaults = () => {
+  const getSchoolFormDefaults = (): SchoolStudentDetails => {
     return userProfile?.schoolDetails || {
       schoolName: '',
       standard: '',
@@ -64,7 +65,7 @@ const UserDetailsStep: React.FC = () => {
     };
   };
   
-  const getCollegeFormDefaults = () => {
+  const getCollegeFormDefaults = (): CollegeStudentDetails => {
     return userProfile?.collegeDetails || {
       collegeName: '',
       course: '',
@@ -74,7 +75,7 @@ const UserDetailsStep: React.FC = () => {
     };
   };
   
-  const getProfessionalFormDefaults = () => {
+  const getProfessionalFormDefaults = (): WorkingProfessionalDetails => {
     return userProfile?.professionalDetails || {
       company: '',
       designation: '',
