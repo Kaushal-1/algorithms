@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { UserLearningProfile, UserType, ExperienceLevel, KnownTopic } from '../types/UserProfile';
 
@@ -49,8 +48,11 @@ export const LearningProfileProvider: React.FC<{ children: ReactNode }> = ({ chi
       if (!prev) return { ...defaultProfile, userType: type, customUserType: customType };
       return { ...prev, userType: type, customUserType: customType, updatedAt: new Date() };
     });
-    // Move directly to topic selection
-    setCurrentStep(2);
+    if (type === 'college_student' || type === 'working_professional') {
+      setCurrentStep(2);
+    } else {
+      setCurrentStep(2);
+    }
   };
 
   const setTopic = (topic: string) => {
