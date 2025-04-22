@@ -21,9 +21,19 @@ const LearningFlowContainer: React.FC = () => {
         }
         return <TopicSelectionStep />;
       case 3:
-        return <TopicSelectionStep />;
-      case 4:
+        // For college_student and working_professional, this is TopicSelectionStep
+        // For others, this is ExperienceLevelStep
+        if (userProfile?.userType === 'college_student' || userProfile?.userType === 'working_professional') {
+          return <TopicSelectionStep />;
+        }
         return <ExperienceLevelStep />;
+      case 4:
+        // For college_student and working_professional, this is ExperienceLevelStep
+        // For others, this is RoadmapGenerator
+        if (userProfile?.userType === 'college_student' || userProfile?.userType === 'working_professional') {
+          return <ExperienceLevelStep />;
+        }
+        return <RoadmapGenerator initialProfile={userProfile} />;
       case 5:
         return <RoadmapGenerator initialProfile={userProfile} />;
       default:
@@ -32,7 +42,14 @@ const LearningFlowContainer: React.FC = () => {
   };
 
   // Calculate total steps based on user type
-  const totalSteps = (userProfile?.userType === 'college_student' || userProfile?.userType === 'working_professional') ? 4 : 3;
+  const getTotalSteps = () => {
+    if (userProfile?.userType === 'college_student' || userProfile?.userType === 'working_professional') {
+      return 4; // UserType -> UserDetails -> Topic -> Experience -> Roadmap (5 steps but progress shows 4)
+    }
+    return 3; // UserType -> Topic -> Experience -> Roadmap (4 steps but progress shows 3)
+  };
+
+  const totalSteps = getTotalSteps();
 
   return (
     <div className="w-full max-w-4xl mx-auto">
@@ -44,13 +61,13 @@ const LearningFlowContainer: React.FC = () => {
                 <div className="flex mb-2 items-center justify-between">
                   <div>
                     <span className="text-xs font-semibold inline-block py-1 px-2 uppercase rounded-full bg-primary text-primary-foreground">
-                      Step {currentStep} of {totalSteps}
+                      Step {currentStep > totalSteps ? totalSteps : currentStep} of {totalSteps}
                     </span>
                   </div>
                 </div>
                 <div className="overflow-hidden h-2 mb-4 text-xs flex rounded bg-primary/20">
                   <div
-                    style={{ width: `${(currentStep / totalSteps) * 100}%` }}
+                    style={{ width: `${(Math.min(currentStep, totalSteps) / totalSteps) * 100}%` }}
                     className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-primary"
                   ></div>
                 </div>

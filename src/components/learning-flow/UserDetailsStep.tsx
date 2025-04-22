@@ -12,6 +12,7 @@ import { format } from 'date-fns';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
+import { CollegeStudentDetails, WorkingProfessionalDetails } from '@/types/UserProfile';
 
 const collegeStudentSchema = z.object({
   collegeName: z.string().min(2, 'College name is required'),
@@ -34,33 +35,54 @@ const workingProfessionalSchema = z.object({
   }),
 });
 
+type CollegeFormValues = z.infer<typeof collegeStudentSchema>;
+type ProfessionalFormValues = z.infer<typeof workingProfessionalSchema>;
+
 const UserDetailsStep: React.FC = () => {
   const { userProfile, setUserDetails, setCurrentStep } = useLearningProfile();
 
   const isCollegeStudent = userProfile?.userType === 'college_student';
   const schema = isCollegeStudent ? collegeStudentSchema : workingProfessionalSchema;
 
-  const form = useForm<z.infer<typeof schema>>({
+  // Prepare default values with proper type handling
+  const getDefaultValues = () => {
+    if (isCollegeStudent) {
+      // College student
+      return {
+        collegeName: userProfile?.collegeDetails?.collegeName || '',
+        course: userProfile?.collegeDetails?.course || '',
+        year: userProfile?.collegeDetails?.year || '',
+        phoneNumber: userProfile?.collegeDetails?.phoneNumber || '',
+        dob: userProfile?.collegeDetails?.dob || undefined,
+      };
+    } else {
+      // Working professional
+      return {
+        company: userProfile?.professionalDetails?.company || '',
+        designation: userProfile?.professionalDetails?.designation || '',
+        experience: userProfile?.professionalDetails?.experience || '',
+        qualification: userProfile?.professionalDetails?.qualification || '',
+        phoneNumber: userProfile?.professionalDetails?.phoneNumber || '',
+        dob: userProfile?.professionalDetails?.dob || undefined,
+      };
+    }
+  };
+
+  const form = useForm({
     resolver: zodResolver(schema),
-    defaultValues: isCollegeStudent
-      ? userProfile?.collegeDetails || {
-          collegeName: '',
-          course: '',
-          year: '',
-          phoneNumber: '',
-        }
-      : userProfile?.professionalDetails || {
-          company: '',
-          designation: '',
-          experience: '',
-          qualification: '',
-          phoneNumber: '',
-        },
+    defaultValues: getDefaultValues(),
   });
 
-  const onSubmit = async (values: z.infer<typeof schema>) => {
-    setUserDetails(values);
-    setCurrentStep(2); // Move to topic selection
+  const onSubmit = async (values: CollegeFormValues | ProfessionalFormValues) => {
+    // Convert the form values to the correct types
+    if (isCollegeStudent) {
+      const collegeDetails: CollegeStudentDetails = values as CollegeStudentDetails;
+      setUserDetails(collegeDetails);
+    } else {
+      const professionalDetails: WorkingProfessionalDetails = values as WorkingProfessionalDetails;
+      setUserDetails(professionalDetails);
+    }
+    setCurrentStep(3); // Move to topic selection
   };
 
   return (
