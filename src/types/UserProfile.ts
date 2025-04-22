@@ -8,6 +8,14 @@ export interface KnownTopic {
   selected: boolean;
 }
 
+export interface SchoolStudentDetails {
+  schoolName: string;
+  standard: string;
+  board: string;
+  phoneNumber: string;
+  dob: string;
+}
+
 export interface CollegeStudentDetails {
   collegeName: string;
   course: string;
@@ -32,6 +40,7 @@ export interface UserLearningProfile {
   topic: string;
   experienceLevel: ExperienceLevel;
   knownTopics?: KnownTopic[];
+  schoolDetails?: SchoolStudentDetails;
   collegeDetails?: CollegeStudentDetails;
   professionalDetails?: WorkingProfessionalDetails;
   roadmapId?: string;

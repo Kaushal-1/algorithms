@@ -15,7 +15,9 @@ const LearningFlowContainer: React.FC = () => {
       case 1:
         return <UserTypeStep />;
       case 2:
-        if (userProfile?.userType === 'college_student' || userProfile?.userType === 'working_professional') {
+        if (userProfile?.userType === 'college_student' || 
+            userProfile?.userType === 'working_professional' ||
+            userProfile?.userType === 'school_student') {
           return <UserDetailsStep />;
         }
         return <TopicSelectionStep />;
@@ -31,7 +33,9 @@ const LearningFlowContainer: React.FC = () => {
   };
 
   // Calculate progress based on total steps
-  const totalSteps = (userProfile?.userType === 'college_student' || userProfile?.userType === 'working_professional') ? 4 : 3;
+  const totalSteps = (userProfile?.userType === 'college_student' || 
+                     userProfile?.userType === 'working_professional' ||
+                     userProfile?.userType === 'school_student') ? 4 : 3;
   const progress = (currentStep / totalSteps) * 100;
 
   return (

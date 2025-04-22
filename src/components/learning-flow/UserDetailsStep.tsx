@@ -13,8 +13,22 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useLearningProfile } from '@/contexts/LearningProfileContext';
-import { CollegeStudentDetails, WorkingProfessionalDetails } from '@/types/UserProfile';
+
+const schoolStudentSchema = z.object({
+  schoolName: z.string().min(2, 'School name is required'),
+  standard: z.string().min(1, 'Standard is required'),
+  board: z.string().min(2, 'Board name is required'),
+  phoneNumber: z.string().min(10, 'Valid phone number is required'),
+  dob: z.string().min(1, 'Date of birth is required'),
+});
 
 const collegeStudentSchema = z.object({
   collegeName: z.string().min(2, 'College name is required'),
@@ -33,17 +47,33 @@ const workingProfessionalSchema = z.object({
   dob: z.string().min(1, 'Date of birth is required'),
 });
 
-type CollegeStudentFormValues = z.infer<typeof collegeStudentSchema>;
-type WorkingProfessionalFormValues = z.infer<typeof workingProfessionalSchema>;
-
 const UserDetailsStep: React.FC = () => {
-  const { userProfile, setCurrentStep } = useLearningProfile();
+  const { userProfile, setCurrentStep, updateUserProfile } = useLearningProfile();
   
-  const isCollegeStudent = userProfile?.userType === 'college_student';
+  const getFormSchema = () => {
+    switch (userProfile?.userType) {
+      case 'school_student':
+        return schoolStudentSchema;
+      case 'college_student':
+        return collegeStudentSchema;
+      case 'working_professional':
+        return workingProfessionalSchema;
+      default:
+        return schoolStudentSchema;
+    }
+  };
   
-  const form = useForm<CollegeStudentFormValues | WorkingProfessionalFormValues>({
-    resolver: zodResolver(isCollegeStudent ? collegeStudentSchema : workingProfessionalSchema),
-    defaultValues: isCollegeStudent
+  const form = useForm({
+    resolver: zodResolver(getFormSchema()),
+    defaultValues: userProfile?.userType === 'school_student'
+      ? userProfile?.schoolDetails || {
+          schoolName: '',
+          standard: '',
+          board: '',
+          phoneNumber: '',
+          dob: '',
+        }
+      : userProfile?.userType === 'college_student'
       ? userProfile?.collegeDetails || {
           collegeName: '',
           course: '',
@@ -61,8 +91,23 @@ const UserDetailsStep: React.FC = () => {
         },
   });
 
-  const onSubmit = async (data: CollegeStudentFormValues | WorkingProfessionalFormValues) => {
-    setCurrentStep(2); // Move to topic selection after details are collected
+  const onSubmit = async (data: any) => {
+    const updatedProfile = { ...userProfile };
+    
+    switch (userProfile?.userType) {
+      case 'school_student':
+        updatedProfile.schoolDetails = data;
+        break;
+      case 'college_student':
+        updatedProfile.collegeDetails = data;
+        break;
+      case 'working_professional':
+        updatedProfile.professionalDetails = data;
+        break;
+    }
+    
+    updateUserProfile(updatedProfile);
+    setCurrentStep(3);
   };
 
   return (
@@ -76,7 +121,73 @@ const UserDetailsStep: React.FC = () => {
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-          {isCollegeStudent ? (
+          {userProfile?.userType === 'school_student' && (
+            <>
+              <FormField
+                control={form.control}
+                name="schoolName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>School Name</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Enter your school name" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="standard"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Standard</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select your standard" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {Array.from({ length: 12 }, (_, i) => i + 1).map((std) => (
+                          <SelectItem key={std} value={std.toString()}>
+                            {std}th Standard
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="board"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Board</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select your board" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="CBSE">CBSE</SelectItem>
+                        <SelectItem value="ICSE">ICSE</SelectItem>
+                        <SelectItem value="State">State Board</SelectItem>
+                        <SelectItem value="IB">IB</SelectItem>
+                        <SelectItem value="Other">Other</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </>
+          )}
+
+          {userProfile?.userType === 'college_student' && (
             <>
               <FormField
                 control={form.control}
@@ -110,15 +221,27 @@ const UserDetailsStep: React.FC = () => {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Year</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Current year" {...field} />
-                    </FormControl>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select your year" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="1">First Year</SelectItem>
+                        <SelectItem value="2">Second Year</SelectItem>
+                        <SelectItem value="3">Third Year</SelectItem>
+                        <SelectItem value="4">Fourth Year</SelectItem>
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}
               />
             </>
-          ) : (
+          )}
+
+          {userProfile?.userType === 'working_professional' && (
             <>
               <FormField
                 control={form.control}
@@ -153,7 +276,7 @@ const UserDetailsStep: React.FC = () => {
                   <FormItem>
                     <FormLabel>Experience (in years)</FormLabel>
                     <FormControl>
-                      <Input placeholder="Years of experience" {...field} />
+                      <Input placeholder="Years of experience" type="number" min="0" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -182,7 +305,7 @@ const UserDetailsStep: React.FC = () => {
               <FormItem>
                 <FormLabel>Phone Number</FormLabel>
                 <FormControl>
-                  <Input placeholder="Enter your phone number" {...field} />
+                  <Input placeholder="Enter your phone number" type="tel" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
