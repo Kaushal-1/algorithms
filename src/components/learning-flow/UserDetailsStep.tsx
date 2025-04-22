@@ -28,7 +28,6 @@ const schoolStudentSchema = z.object({
   standard: z.string().min(1, 'Standard is required'),
   board: z.string().min(2, 'Board name is required'),
   phoneNumber: z.string().min(10, 'Valid phone number is required'),
-  dob: z.string().min(1, 'Date of birth is required'),
 });
 
 const collegeStudentSchema = z.object({
@@ -36,7 +35,6 @@ const collegeStudentSchema = z.object({
   course: z.string().min(2, 'Course name is required'),
   year: z.string().min(1, 'Year is required'),
   phoneNumber: z.string().min(10, 'Valid phone number is required'),
-  dob: z.string().min(1, 'Date of birth is required'),
 });
 
 const workingProfessionalSchema = z.object({
@@ -45,7 +43,6 @@ const workingProfessionalSchema = z.object({
   experience: z.string().min(1, 'Experience is required'),
   qualification: z.string().min(2, 'Qualification is required'),
   phoneNumber: z.string().min(10, 'Valid phone number is required'),
-  dob: z.string().min(1, 'Date of birth is required'),
 });
 
 type SchoolFormValues = z.infer<typeof schoolStudentSchema>;
@@ -61,7 +58,6 @@ const UserDetailsStep: React.FC = () => {
       standard: '',
       board: '',
       phoneNumber: '',
-      dob: '',
     };
   };
   
@@ -71,7 +67,6 @@ const UserDetailsStep: React.FC = () => {
       course: '',
       year: '',
       phoneNumber: '',
-      dob: '',
     };
   };
   
@@ -82,7 +77,6 @@ const UserDetailsStep: React.FC = () => {
       experience: '',
       qualification: '',
       phoneNumber: '',
-      dob: '',
     };
   };
   
@@ -211,19 +205,6 @@ const UserDetailsStep: React.FC = () => {
                 </FormItem>
               )}
             />
-            <FormField
-              control={schoolForm.control}
-              name="dob"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Date of Birth</FormLabel>
-                  <FormControl>
-                    <Input type="date" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
             <div className="pt-4">
               <Button type="submit" className="w-full">Continue</Button>
             </div>
@@ -291,19 +272,6 @@ const UserDetailsStep: React.FC = () => {
                   <FormLabel>Phone Number</FormLabel>
                   <FormControl>
                     <Input placeholder="Enter your phone number" type="tel" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={collegeForm.control}
-              name="dob"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Date of Birth</FormLabel>
-                  <FormControl>
-                    <Input type="date" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -379,19 +347,6 @@ const UserDetailsStep: React.FC = () => {
                   <FormLabel>Phone Number</FormLabel>
                   <FormControl>
                     <Input placeholder="Enter your phone number" type="tel" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={professionalForm.control}
-              name="dob"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Date of Birth</FormLabel>
-                  <FormControl>
-                    <Input type="date" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

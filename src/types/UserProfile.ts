@@ -1,3 +1,4 @@
+
 export type UserType = 'school_student' | 'college_student' | 'working_professional' | 'other';
 
 export type ExperienceLevel = 'beginner' | 'intermediate' | 'expert';
@@ -13,7 +14,6 @@ export interface SchoolStudentDetails {
   standard: string;
   board: string;
   phoneNumber: string;
-  dob: string;
 }
 
 export interface CollegeStudentDetails {
@@ -21,7 +21,6 @@ export interface CollegeStudentDetails {
   course: string;
   year: string;
   phoneNumber: string;
-  dob: string;
 }
 
 export interface WorkingProfessionalDetails {
@@ -30,7 +29,6 @@ export interface WorkingProfessionalDetails {
   experience: string;
   qualification: string;
   phoneNumber: string;
-  dob: string;
 }
 
 export interface UserLearningProfile {
