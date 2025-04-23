@@ -52,9 +52,11 @@ type ProfessionalFormValues = z.infer<typeof workingProfessionalSchema>;
 const UserDetailsStep: React.FC = () => {
   const { userProfile, setCurrentStep, updateUserProfile } = useLearningProfile();
   
-  // Fix: Ensure all required properties are provided with non-optional values
   const getSchoolFormDefaults = (): SchoolStudentDetails => {
-    return userProfile?.schoolDetails || {
+    if (userProfile?.schoolDetails) {
+      return userProfile.schoolDetails;
+    }
+    return {
       schoolName: '',
       standard: '',
       board: '',
@@ -62,9 +64,11 @@ const UserDetailsStep: React.FC = () => {
     };
   };
   
-  // Fix: Ensure all required properties are provided with non-optional values
   const getCollegeFormDefaults = (): CollegeStudentDetails => {
-    return userProfile?.collegeDetails || {
+    if (userProfile?.collegeDetails) {
+      return userProfile.collegeDetails;
+    }
+    return {
       collegeName: '',
       course: '',
       year: '',
@@ -72,9 +76,11 @@ const UserDetailsStep: React.FC = () => {
     };
   };
   
-  // Fix: Ensure all required properties are provided with non-optional values
   const getProfessionalFormDefaults = (): WorkingProfessionalDetails => {
-    return userProfile?.professionalDetails || {
+    if (userProfile?.professionalDetails) {
+      return userProfile.professionalDetails;
+    }
+    return {
       company: '',
       designation: '',
       experience: '',
