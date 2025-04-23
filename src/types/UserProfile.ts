@@ -9,28 +9,6 @@ export interface KnownTopic {
   selected: boolean;
 }
 
-export interface SchoolStudentDetails {
-  schoolName: string;
-  standard: string;
-  board: string;
-  phoneNumber: string;
-}
-
-export interface CollegeStudentDetails {
-  collegeName: string;
-  course: string;
-  year: string;
-  phoneNumber: string;
-}
-
-export interface WorkingProfessionalDetails {
-  company: string;
-  designation: string;
-  experience: string;
-  qualification: string;
-  phoneNumber: string;
-}
-
 export interface UserLearningProfile {
   id?: string;
   userType: UserType;
@@ -38,9 +16,6 @@ export interface UserLearningProfile {
   topic: string;
   experienceLevel: ExperienceLevel;
   knownTopics?: KnownTopic[];
-  schoolDetails?: SchoolStudentDetails;
-  collegeDetails?: CollegeStudentDetails;
-  professionalDetails?: WorkingProfessionalDetails;
   roadmapId?: string;
   syllabusId?: string;
   createdAt?: Date;

@@ -8,7 +8,6 @@ interface LearningProfileContextType {
   setTopic: (topic: string) => void;
   setExperienceLevel: (level: ExperienceLevel) => void;
   setKnownTopics: (topics: KnownTopic[]) => void;
-  updateUserProfile: (profile: UserLearningProfile) => void;
   resetProfile: () => void;
   saveProfile: () => void;
   currentStep: number;
@@ -50,11 +49,8 @@ export const LearningProfileProvider: React.FC<{ children: ReactNode }> = ({ chi
       if (!prev) return { ...defaultProfile, userType: type, customUserType: customType };
       return { ...prev, userType: type, customUserType: customType, updatedAt: new Date() };
     });
-    if (type === 'college_student' || type === 'working_professional' || type === 'school_student') {
-      setCurrentStep(2);
-    } else {
-      setCurrentStep(2);
-    }
+    // Move directly to topic selection
+    setCurrentStep(2);
   };
 
   const setTopic = (topic: string) => {
@@ -78,10 +74,6 @@ export const LearningProfileProvider: React.FC<{ children: ReactNode }> = ({ chi
     });
   };
 
-  const updateUserProfile = (profile: UserLearningProfile) => {
-    setUserProfile(profile);
-  };
-
   const resetProfile = () => {
     setUserProfile({ ...defaultProfile });
     setCurrentStep(1);
@@ -101,7 +93,6 @@ export const LearningProfileProvider: React.FC<{ children: ReactNode }> = ({ chi
         setTopic,
         setExperienceLevel,
         setKnownTopics,
-        updateUserProfile,
         resetProfile,
         saveProfile,
         currentStep,
