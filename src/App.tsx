@@ -25,6 +25,7 @@ import Settings from "./pages/Settings";
 import Community from "./pages/Community";
 import PersonalizedLearning from "./pages/PersonalizedLearning";
 import LearningSession from "./pages/LearningSession";
+import AICodeReview from "./pages/AICodeReview";
 
 // Initialize QueryClient outside of the component to avoid recreation on renders
 const queryClient = new QueryClient();
@@ -44,6 +45,9 @@ const App = () => {
                     <Route path="/" element={<Index />} />
                     <Route path="/login" element={<Login />} />
                     <Route path="/signup" element={<SignUp />} />
+                    
+                    {/* AI Code Review route */}
+                    <Route path="/ai-code-review" element={<AICodeReview />} />
                     
                     {/* Protect personalized-learning route */}
                     <Route 

@@ -2,7 +2,7 @@
 import React from 'react';
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Github, Home, LogOut, User } from "lucide-react";
+import { FileCode, Github, Home, LogOut, User } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from '@/contexts/AuthContext';
 import {
@@ -42,6 +42,10 @@ const Navbar = () => {
           </Link>
           <Link to="/dsa-chat-prompt" className={`text-sm transition-colors ${location.pathname === '/dsa-chat-prompt' ? 'text-primary' : 'text-foreground/80 hover:text-primary'}`}>
             DSA Trainer
+          </Link>
+          <Link to="/ai-code-review" className={`text-sm transition-colors flex items-center gap-2 ${location.pathname === '/ai-code-review' ? 'text-primary' : 'text-foreground/80 hover:text-primary'}`}>
+            <FileCode className="h-4 w-4" />
+            AI Review
           </Link>
           <Link to="/code-history" className={`text-sm transition-colors ${location.pathname === '/code-history' ? 'text-primary' : 'text-foreground/80 hover:text-primary'}`}>
             History
