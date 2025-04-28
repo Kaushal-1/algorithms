@@ -1,13 +1,11 @@
 
-import React, { useState, useRef, useEffect } from 'react';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Send, Loader, Save } from 'lucide-react';
-import AIChatMessage from '@/components/AIChatMessage';
-import { cn } from '@/lib/utils';
-import { Roadmap, RoadmapStep } from './RoadmapDisplay';
+import React from 'react';
+import { Roadmap } from './RoadmapDisplay';
+import { useStepwiseChat } from '@/hooks/useStepwiseChat';
+import { ChatInput } from './stepwise-guide/ChatInput';
+import { ChatMessages } from './stepwise-guide/ChatMessages';
+import { SessionControls } from './stepwise-guide/SessionControls';
 import { toast } from 'sonner';
-import { callGroqApi } from '@/services/groqApi';
 import { ChatMessage } from '@/types/ChatSession';
 
 interface StepwiseAIGuideProps {
@@ -23,82 +21,15 @@ const StepwiseAIGuide: React.FC<StepwiseAIGuideProps> = ({
   onNextStep,
   isLastStep
 }) => {
-  const [input, setInput] = useState('');
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-  
   const currentStepData = roadmap.steps.find(step => step.step === currentStep);
   
-  useEffect(() => {
-    if (currentStepData) {
-      const initialMessage: ChatMessage = {
-        id: `step-${currentStep}-intro`,
-        role: 'assistant',
-        content: `Let's focus on Step ${currentStep}: **${currentStepData.title}**\n\n${currentStepData.description}\n\nAsk me any questions about this topic, and I'll guide you through it. When you're ready to move on, you can mark this step as completed.`,
-        timestamp: new Date(),
-      };
-      
-      setMessages([initialMessage]);
-    }
-  }, [currentStep, currentStepData]);
-  
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
-  
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
-  
-  const handleSendMessage = async () => {
-    if (!input.trim()) return;
-    
-    const userMessage: ChatMessage = {
-      id: Date.now().toString(),
-      role: 'user',
-      content: input,
-      timestamp: new Date()
-    };
-    
-    setMessages(prev => [...prev, userMessage]);
-    setInput('');
-    setIsProcessing(true);
-    
-    try {
-      const systemPrompt = `You are an expert AI Guru specializing in personalized education. You are currently guiding the student through Step ${currentStep}: ${currentStepData?.title}. Focus your explanations on this specific topic. When showing code, make sure to use proper markdown formatting with \`\`\`language code blocks. Keep your responses clear, educational, and specific to the current learning step.`;
-      
-      const previousMessages = messages
-        .slice(-6)
-        .map(msg => ({
-          role: msg.role,
-          content: msg.content
-        }));
-      
-      const aiContent = await callGroqApi(systemPrompt, input, previousMessages);
-      
-      const response: ChatMessage = {
-        id: (Date.now() + 1).toString(),
-        role: 'assistant',
-        content: aiContent,
-        timestamp: new Date(),
-        isCode: aiContent.includes('```')
-      };
-      
-      setMessages(prev => [...prev, response]);
-    } catch (error) {
-      console.error('Error calling Groq API:', error);
-      const errorMessage: ChatMessage = {
-        id: (Date.now() + 1).toString(),
-        role: 'assistant',
-        content: "I'm sorry, I encountered an error processing your request. Please try again.",
-        timestamp: new Date()
-      };
-      setMessages(prev => [...prev, errorMessage]);
-    } finally {
-      setIsProcessing(false);
-    }
-  };
+  const {
+    input,
+    setInput,
+    isProcessing,
+    messages,
+    handleSendMessage
+  } = useStepwiseChat({ currentStep, currentStepData });
 
   const saveSession = () => {
     try {
@@ -113,9 +44,7 @@ const StepwiseAIGuide: React.FC<StepwiseAIGuideProps> = ({
       };
       
       const existingSessions = JSON.parse(localStorage.getItem('chatSessions') || '[]');
-      
       const updatedSessions = [session, ...existingSessions];
-      
       localStorage.setItem('chatSessions', JSON.stringify(updatedSessions));
       
       toast.success('Chat session saved successfully!');
@@ -127,81 +56,29 @@ const StepwiseAIGuide: React.FC<StepwiseAIGuideProps> = ({
   
   return (
     <div className="space-y-4">
-      <div className="flex justify-between items-center">
-        <h2 className="font-medium text-lg flex items-center">
-          <span className="text-xl mr-2" role="img" aria-label="Current step icon">
-            {currentStepData?.icon || "🧠"}
-          </span>
-          {currentStepData?.title || "Learning Guide"}
-        </h2>
-        
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={saveSession}
-          className="bg-card/40 border-border/50 hover:bg-card/60"
-        >
-          <Save className="h-4 w-4 mr-2" />
-          Save Session
-        </Button>
-      </div>
+      <SessionControls
+        onSave={saveSession}
+        onNextStep={onNextStep}
+        isLastStep={isLastStep}
+        title={currentStepData?.title || "Learning Guide"}
+        topic={roadmap.topic}
+        experience={roadmap.experience}
+        currentStep={currentStep}
+        totalSteps={roadmap.steps.length}
+      />
       
       <div className="bg-card/40 backdrop-blur-sm border border-border/50 rounded-xl overflow-hidden shadow-xl h-[350px] flex flex-col">
-        <div className="p-4 border-b border-border/50 bg-muted/30">
-          <p className="text-sm text-muted-foreground">
-            {roadmap.topic} • {roadmap.experience} level • Step {currentStep} of {roadmap.steps.length}
-          </p>
-        </div>
+        <ChatMessages 
+          messages={messages}
+          isProcessing={isProcessing}
+        />
         
-        <div className="flex-1 overflow-y-auto p-4 space-y-4">
-          {messages.map((message) => (
-            <AIChatMessage 
-              key={message.id}
-              message={message}
-            />
-          ))}
-          
-          {isProcessing && (
-            <div className="flex items-center space-x-2 text-sm text-muted-foreground p-3 rounded-lg bg-muted/30 max-w-[80%] ml-auto">
-              <Loader className="h-4 w-4 animate-spin" />
-              <span>AI tutor is thinking...</span>
-            </div>
-          )}
-          <div ref={messagesEndRef} />
-        </div>
-        
-        <div className="p-4 border-t border-border/50 bg-muted/30">
-          <div className="flex items-center space-x-2">
-            <Input
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              placeholder="Ask about this topic..."
-              onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
-              className="flex-1 bg-card/70 border-border"
-            />
-            <Button 
-              onClick={handleSendMessage} 
-              disabled={isProcessing || !input.trim()}
-              size="icon"
-              className="bg-primary hover:bg-primary/90"
-            >
-              <Send className="h-4 w-4" />
-            </Button>
-          </div>
-        </div>
-      </div>
-      
-      <div className="flex justify-end">
-        <Button
-          onClick={onNextStep}
-          disabled={isLastStep}
-          className={cn(
-            "gap-2",
-            isLastStep ? "bg-green-500 hover:bg-green-600" : ""
-          )}
-        >
-          {isLastStep ? "Complete Roadmap" : "Move to Next Step"}
-        </Button>
+        <ChatInput
+          input={input}
+          onInputChange={setInput}
+          onSend={handleSendMessage}
+          isProcessing={isProcessing}
+        />
       </div>
     </div>
   );
