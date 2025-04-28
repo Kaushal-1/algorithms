@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -6,14 +7,8 @@ import AIChatMessage from '@/components/AIChatMessage';
 import { cn } from '@/lib/utils';
 import { Roadmap, RoadmapStep } from './RoadmapDisplay';
 import { toast } from 'sonner';
-
-interface ChatMessage {
-  id: string;
-  role: 'user' | 'assistant';
-  content: string;
-  timestamp: Date;
-  isCode?: boolean;
-}
+import { callGroqApi } from '@/services/groqApi';
+import { ChatMessage } from '@/types/ChatSession';
 
 interface StepwiseAIGuideProps {
   roadmap: Roadmap;
@@ -71,7 +66,25 @@ const StepwiseAIGuide: React.FC<StepwiseAIGuideProps> = ({
     setIsProcessing(true);
     
     try {
-      const response = await callGroqApi(input, currentStepData);
+      const systemPrompt = `You are an expert AI Guru specializing in personalized education. You are currently guiding the student through Step ${currentStep}: ${currentStepData?.title}. Focus your explanations on this specific topic. When showing code, make sure to use proper markdown formatting with \`\`\`language code blocks. Keep your responses clear, educational, and specific to the current learning step.`;
+      
+      const previousMessages = messages
+        .slice(-6)
+        .map(msg => ({
+          role: msg.role,
+          content: msg.content
+        }));
+      
+      const aiContent = await callGroqApi(systemPrompt, input, previousMessages);
+      
+      const response: ChatMessage = {
+        id: (Date.now() + 1).toString(),
+        role: 'assistant',
+        content: aiContent,
+        timestamp: new Date(),
+        isCode: aiContent.includes('```')
+      };
+      
       setMessages(prev => [...prev, response]);
     } catch (error) {
       console.error('Error calling Groq API:', error);
@@ -85,58 +98,6 @@ const StepwiseAIGuide: React.FC<StepwiseAIGuideProps> = ({
     } finally {
       setIsProcessing(false);
     }
-  };
-  
-  const callGroqApi = async (prompt: string, stepData?: RoadmapStep): Promise<ChatMessage> => {
-    const GROQ_API_KEY = "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";
-    
-    const previousMessages = messages
-      .slice(-6)
-      .map(msg => ({
-        role: msg.role,
-        content: msg.content
-      }));
-      
-    let systemPrompt = `You are an expert AI Guru specializing in personalized education. You are currently guiding the student through Step ${currentStep}: ${stepData?.title}. Focus your explanations on this specific topic. When showing code, make sure to use proper markdown formatting with \`\`\`language code blocks. Keep your responses clear, educational, and specific to the current learning step.`;
-      
-    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${GROQ_API_KEY}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        model: 'llama3-8b-8192',
-        messages: [
-          {
-            role: 'system',
-            content: systemPrompt
-          },
-          ...previousMessages,
-          {
-            role: 'user',
-            content: prompt
-          }
-        ],
-        temperature: 0.7,
-        max_tokens: 1024
-      })
-    });
-
-    if (!response.ok) {
-      throw new Error(`Groq API error: ${response.status}`);
-    }
-
-    const data = await response.json();
-    const aiResponse = data.choices[0].message.content;
-    
-    return {
-      id: (Date.now() + 1).toString(),
-      role: 'assistant',
-      content: aiResponse,
-      timestamp: new Date(),
-      isCode: aiResponse.includes('```')
-    };
   };
 
   const saveSession = () => {
