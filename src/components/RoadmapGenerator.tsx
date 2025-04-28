@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { UserLearningProfile } from '@/types/UserProfile';
 import RoadmapDisplay from './RoadmapDisplay';
@@ -104,6 +105,7 @@ const RoadmapGenerator: React.FC<RoadmapGeneratorProps> = ({ initialProfile }) =
         console.log('Saved roadmap to localStorage with existing ID', roadmap);
       }
       
+      // Use React Router navigate instead of directly changing window.location
       navigate('/learning-session/1');
     } catch (error) {
       console.error('Error starting learning session:', error);

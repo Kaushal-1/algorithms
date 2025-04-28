@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { ChevronLeft } from 'lucide-react';
 import { toast } from 'sonner';
 import { Roadmap, RoadmapStep } from '@/components/RoadmapDisplay';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 
 const LearningSession: React.FC = () => {
   const { topicId } = useParams();
@@ -17,6 +18,7 @@ const LearningSession: React.FC = () => {
   const [currentRoadmap, setCurrentRoadmap] = useState<Roadmap | null>(null);
   const [selectedTopic, setSelectedTopic] = useState<string | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<string>("chat");
   
   // Load the user's saved roadmap
   useEffect(() => {
@@ -48,10 +50,12 @@ const LearningSession: React.FC = () => {
               } else {
                 // If invalid topic ID, select the first one
                 setSelectedTopic('1');
+                navigate('/learning-session/1', { replace: true });
               }
             } else {
               // If no topic ID provided, select the first one
               setSelectedTopic('1');
+              navigate('/learning-session/1', { replace: true });
             }
           } catch (parseError) {
             console.error('Error parsing roadmap:', parseError);
@@ -83,12 +87,28 @@ const LearningSession: React.FC = () => {
   
   const handleTopicSelect = (topicId: string) => {
     setSelectedTopic(topicId);
-    navigate(`/learning-session/${topicId}`, { replace: true });
+    // Use React Router navigate instead of modifying the URL directly
+    navigate(`/learning-session/${topicId}`);
   };
   
   const handleBackToRoadmap = () => {
+    // Use React Router navigate instead of directly changing location
     navigate('/personalized-learning');
   };
+  
+  const handleTabChange = (value: string) => {
+    setActiveTab(value);
+    // Store the selected tab in sessionStorage to persist across tab changes
+    sessionStorage.setItem('learningSessionTab', value);
+  };
+
+  // Load the last active tab when component mounts
+  useEffect(() => {
+    const savedTab = sessionStorage.getItem('learningSessionTab');
+    if (savedTab) {
+      setActiveTab(savedTab);
+    }
+  }, []);
   
   if (isLoading) {
     return (
@@ -148,15 +168,40 @@ const LearningSession: React.FC = () => {
                 {currentRoadmap.topic} • {currentRoadmap.experience} level
               </p>
             </div>
+
+            <Tabs value={activeTab} onValueChange={handleTabChange} className="w-[400px]">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="chat">Chat with AI Guru</TabsTrigger>
+                <TabsTrigger value="notes">Notes & Resources</TabsTrigger>
+              </TabsList>
+            </Tabs>
           </div>
           
-          {/* Chat window */}
+          {/* Tab content */}
           {currentTopicData && (
-            <AIChatWindow 
-              topic={currentTopicData}
-              roadmapId={currentRoadmap.id || 'default-roadmap'}
-              sessionId={`session-${currentRoadmap.id}-topic-${selectedTopic}`}
-            />
+            <div className="flex-1 overflow-hidden">
+              {activeTab === "chat" && (
+                <AIChatWindow 
+                  topic={currentTopicData}
+                  roadmapId={currentRoadmap.id || 'default-roadmap'}
+                  sessionId={`session-${currentRoadmap.id}-topic-${selectedTopic}`}
+                />
+              )}
+              
+              {activeTab === "notes" && (
+                <div className="p-6 h-full overflow-y-auto">
+                  <div className="max-w-2xl mx-auto space-y-6">
+                    <h2 className="text-xl font-semibold">Resources for {currentTopicData.title}</h2>
+                    <p className="text-muted-foreground">
+                      Use this space to take notes and bookmark helpful resources for this topic.
+                    </p>
+                    <div className="bg-card/30 border border-border p-4 rounded-lg">
+                      <p className="text-sm text-muted-foreground">Your notes and resources will appear here in future updates.</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
           )}
         </div>
       </div>
