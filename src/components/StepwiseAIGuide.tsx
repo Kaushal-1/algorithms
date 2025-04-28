@@ -6,7 +6,6 @@ import { ChatInput } from './stepwise-guide/ChatInput';
 import { ChatMessages } from './stepwise-guide/ChatMessages';
 import { SessionControls } from './stepwise-guide/SessionControls';
 import { toast } from 'sonner';
-import { ChatMessage } from '@/types/ChatSession';
 
 interface StepwiseAIGuideProps {
   roadmap: Roadmap;

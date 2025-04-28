@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useRef } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Send } from 'lucide-react';
@@ -17,14 +17,17 @@ export const ChatInput: React.FC<ChatInputProps> = ({
   onSend,
   isProcessing
 }) => {
+  const inputRef = useRef<HTMLInputElement>(null);
+  
   return (
     <div className="p-4 border-t border-border/50 bg-muted/30">
       <div className="flex items-center space-x-2">
         <Input
+          ref={inputRef}
           value={input}
           onChange={(e) => onInputChange(e.target.value)}
           placeholder="Ask about this topic..."
-          onKeyDown={(e) => e.key === 'Enter' && onSend()}
+          onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && onSend()}
           className="flex-1 bg-card/70 border-border"
         />
         <Button 

@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Save } from 'lucide-react';
+import { Save, ArrowRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface SessionControlsProps {
@@ -26,7 +26,7 @@ export const SessionControls: React.FC<SessionControlsProps> = ({
   totalSteps
 }) => {
   return (
-    <>
+    <div className="space-y-4">
       <div className="flex justify-between items-center">
         <h2 className="font-medium text-lg flex items-center">
           <span className="text-xl mr-2" role="img" aria-label="Current step icon">
@@ -46,8 +46,8 @@ export const SessionControls: React.FC<SessionControlsProps> = ({
         </Button>
       </div>
       
-      <div className="bg-card/40 backdrop-blur-sm border border-border/50 rounded-xl overflow-hidden shadow-xl h-[350px] flex flex-col">
-        <div className="p-4 border-b border-border/50 bg-muted/30">
+      <div className="bg-card/40 backdrop-blur-sm border border-border/50 rounded-xl overflow-hidden shadow-md">
+        <div className="p-3 border-b border-border/50 bg-muted/30">
           <p className="text-sm text-muted-foreground">
             {topic} • {experience} level • Step {currentStep} of {totalSteps}
           </p>
@@ -64,8 +64,9 @@ export const SessionControls: React.FC<SessionControlsProps> = ({
           )}
         >
           {isLastStep ? "Complete Roadmap" : "Move to Next Step"}
+          <ArrowRight className="h-4 w-4" />
         </Button>
       </div>
-    </>
+    </div>
   );
 };
