@@ -22,7 +22,7 @@ const LearningSession: React.FC = () => {
   useEffect(() => {
     const loadSavedRoadmap = () => {
       try {
-        // Try to get the roadmap from localStorage
+        // Try to get the roadmap from localStorage (more persistent than sessionStorage)
         const savedRoadmapString = localStorage.getItem('currentRoadmap');
         console.log('Attempting to load roadmap from localStorage:', savedRoadmapString ? 'Found data' : 'No data found');
         
@@ -48,10 +48,14 @@ const LearningSession: React.FC = () => {
               } else {
                 // If invalid topic ID, select the first one
                 setSelectedTopic('1');
+                // Update the URL without full page reload
+                navigate('/learning-session/1', { replace: true });
               }
             } else {
               // If no topic ID provided, select the first one
               setSelectedTopic('1');
+              // Update the URL without full page reload
+              navigate('/learning-session/1', { replace: true });
             }
           } catch (parseError) {
             console.error('Error parsing roadmap:', parseError);
@@ -62,7 +66,8 @@ const LearningSession: React.FC = () => {
         } else {
           console.log('No roadmap found in localStorage');
           setLoadError('No learning roadmap found. Please generate one first.');
-          setTimeout(() => navigate('/personalized-learning'), 2000);
+          // Use navigate instead of setTimeout to prevent full page reload
+          navigate('/personalized-learning');
         }
       } catch (error) {
         console.error('Error loading roadmap:', error);
@@ -83,12 +88,21 @@ const LearningSession: React.FC = () => {
   
   const handleTopicSelect = (topicId: string) => {
     setSelectedTopic(topicId);
+    // Use navigate with replace to update URL without full page reload
     navigate(`/learning-session/${topicId}`, { replace: true });
   };
   
   const handleBackToRoadmap = () => {
+    // Use navigate instead of directly changing location to prevent full page reload
     navigate('/personalized-learning');
   };
+  
+  // Save the current state to sessionStorage to persist across tab changes
+  useEffect(() => {
+    if (selectedTopic) {
+      sessionStorage.setItem('lastLearningSessionTopic', selectedTopic);
+    }
+  }, [selectedTopic]);
   
   if (isLoading) {
     return (

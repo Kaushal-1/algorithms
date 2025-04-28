@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { UserLearningProfile } from '@/types/UserProfile';
 import RoadmapDisplay from './RoadmapDisplay';
@@ -99,12 +100,22 @@ const RoadmapGenerator: React.FC<RoadmapGeneratorProps> = ({ initialProfile }) =
         console.log('Saved roadmap to localStorage with new ID', updatedRoadmap);
         
         setRoadmap(updatedRoadmap);
+        
+        // Save current topic to sessionStorage for tab persistence
+        sessionStorage.setItem('lastLearningSessionTopic', '1');
+        
+        // Use navigate instead of directly setting window.location
+        navigate('/learning-session/1');
       } else {
         localStorage.setItem('currentRoadmap', JSON.stringify(roadmap));
         console.log('Saved roadmap to localStorage with existing ID', roadmap);
+        
+        // Save current topic to sessionStorage for tab persistence
+        sessionStorage.setItem('lastLearningSessionTopic', '1');
+        
+        // Use navigate instead of directly setting window.location
+        navigate('/learning-session/1');
       }
-      
-      navigate('/learning-session/1');
     } catch (error) {
       console.error('Error starting learning session:', error);
       toast.error('Failed to start learning session. Please try again.');
