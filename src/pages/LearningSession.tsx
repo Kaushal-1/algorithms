@@ -16,36 +16,57 @@ const LearningSession: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [currentRoadmap, setCurrentRoadmap] = useState<Roadmap | null>(null);
   const [selectedTopic, setSelectedTopic] = useState<string | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
   
   // Load the user's saved roadmap
   useEffect(() => {
     const loadSavedRoadmap = () => {
       try {
+        // Try to get the roadmap from localStorage
         const savedRoadmapString = localStorage.getItem('currentRoadmap');
+        console.log('Attempting to load roadmap from localStorage:', savedRoadmapString ? 'Found data' : 'No data found');
+        
         if (savedRoadmapString) {
-          const roadmap = JSON.parse(savedRoadmapString);
-          setCurrentRoadmap(roadmap);
-          
-          // If a topic ID is provided in the URL, select that topic
-          if (topicId) {
-            const stepIndex = parseInt(topicId);
-            if (!isNaN(stepIndex) && roadmap.steps[stepIndex - 1]) {
-              setSelectedTopic(topicId);
+          try {
+            const roadmap = JSON.parse(savedRoadmapString);
+            console.log('Successfully parsed roadmap:', roadmap);
+            
+            if (!roadmap || !roadmap.steps || !Array.isArray(roadmap.steps) || roadmap.steps.length === 0) {
+              console.error('Invalid roadmap structure:', roadmap);
+              setLoadError('The saved roadmap appears to be invalid or corrupted. Please generate a new roadmap.');
+              setIsLoading(false);
+              return;
+            }
+            
+            setCurrentRoadmap(roadmap);
+            
+            // If a topic ID is provided in the URL, select that topic
+            if (topicId) {
+              const stepIndex = parseInt(topicId);
+              if (!isNaN(stepIndex) && roadmap.steps[stepIndex - 1]) {
+                setSelectedTopic(topicId);
+              } else {
+                // If invalid topic ID, select the first one
+                setSelectedTopic('1');
+              }
             } else {
-              // If invalid topic ID, select the first one
+              // If no topic ID provided, select the first one
               setSelectedTopic('1');
             }
-          } else {
-            // If no topic ID provided, select the first one
-            setSelectedTopic('1');
+          } catch (parseError) {
+            console.error('Error parsing roadmap:', parseError);
+            setLoadError('Could not parse the saved roadmap data. Please generate a new roadmap.');
+            setIsLoading(false);
+            return;
           }
         } else {
-          toast.error('No learning roadmap found. Please generate one first.');
-          navigate('/personalized-learning');
+          console.log('No roadmap found in localStorage');
+          setLoadError('No learning roadmap found. Please generate one first.');
+          setTimeout(() => navigate('/personalized-learning'), 2000);
         }
       } catch (error) {
         console.error('Error loading roadmap:', error);
-        toast.error('Failed to load your learning roadmap');
+        setLoadError('Failed to load your learning roadmap. Please try again.');
       } finally {
         setIsLoading(false);
       }
@@ -54,9 +75,15 @@ const LearningSession: React.FC = () => {
     loadSavedRoadmap();
   }, [topicId, navigate]);
   
+  useEffect(() => {
+    if (loadError) {
+      toast.error(loadError);
+    }
+  }, [loadError]);
+  
   const handleTopicSelect = (topicId: string) => {
     setSelectedTopic(topicId);
-    navigate(`/learning-session/${topicId}`);
+    navigate(`/learning-session/${topicId}`, { replace: true });
   };
   
   const handleBackToRoadmap = () => {
@@ -71,7 +98,7 @@ const LearningSession: React.FC = () => {
     );
   }
   
-  if (!currentRoadmap) {
+  if (!currentRoadmap || loadError) {
     return (
       <div className="min-h-screen bg-algos-dark flex flex-col items-center justify-center p-4">
         <h1 className="text-xl font-bold mb-4">No Learning Roadmap Found</h1>

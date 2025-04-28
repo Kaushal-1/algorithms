@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { UserLearningProfile } from '@/types/UserProfile';
 import RoadmapDisplay from './RoadmapDisplay';
@@ -11,6 +10,8 @@ import { useRoadmapGeneration } from '@/hooks/useRoadmapGeneration';
 import { generateRoadmapPdf } from '@/utils/roadmapPdfGenerator';
 import { EXPERIENCE_STEP, TOPIC_STEP, ROADMAP_STEP } from '@/types/StepTypes';
 import type { ExperienceLevel, Step } from '@/types/StepTypes';
+import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 
 interface RoadmapGeneratorProps {
   initialProfile?: UserLearningProfile | null;
@@ -24,6 +25,7 @@ const RoadmapGenerator: React.FC<RoadmapGeneratorProps> = ({ initialProfile }) =
   const [selectedTopic, setSelectedTopic] = useState<string>(initialProfile?.topic || '');
   const [currentRoadmapStep, setCurrentRoadmapStep] = useState<number>(1);
   const [completedSteps, setCompletedSteps] = useState<number[]>([]);
+  const navigate = useNavigate();
   
   const {
     isGenerating,
@@ -81,7 +83,32 @@ const RoadmapGenerator: React.FC<RoadmapGeneratorProps> = ({ initialProfile }) =
   };
   
   const startLearningSession = () => {
-    window.location.href = '/learning-session/1';
+    try {
+      if (!roadmap || !roadmap.steps || roadmap.steps.length === 0) {
+        toast.error('Invalid roadmap. Please regenerate your learning roadmap.');
+        return;
+      }
+      
+      if (!roadmap.id) {
+        const updatedRoadmap = {
+          ...roadmap,
+          id: `roadmap-${Date.now()}`
+        };
+        
+        localStorage.setItem('currentRoadmap', JSON.stringify(updatedRoadmap));
+        console.log('Saved roadmap to localStorage with new ID', updatedRoadmap);
+        
+        setRoadmap(updatedRoadmap);
+      } else {
+        localStorage.setItem('currentRoadmap', JSON.stringify(roadmap));
+        console.log('Saved roadmap to localStorage with existing ID', roadmap);
+      }
+      
+      navigate('/learning-session/1');
+    } catch (error) {
+      console.error('Error starting learning session:', error);
+      toast.error('Failed to start learning session. Please try again.');
+    }
   };
   
   if (currentStep === ROADMAP_STEP && roadmap) {
