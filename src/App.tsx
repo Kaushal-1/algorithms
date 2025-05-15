@@ -26,9 +26,34 @@ import Community from "./pages/Community";
 import PersonalizedLearning from "./pages/PersonalizedLearning";
 import LearningSession from "./pages/LearningSession";
 import AICodeReview from "./pages/AICodeReview";
+import { SidebarProvider } from "./components/ui/sidebar";
+import AppSidebar from "./components/AppSidebar";
 
 // Initialize QueryClient outside of the component to avoid recreation on renders
 const queryClient = new QueryClient();
+
+// Layout component to wrap authenticated routes
+const AppLayout = ({ children }: { children: React.ReactNode }) => {
+  return (
+    <SidebarProvider defaultOpen={true}>
+      <div className="min-h-screen flex w-full">
+        <AppSidebar />
+        <div className="flex-1 pt-16">
+          {children}
+        </div>
+      </div>
+    </SidebarProvider>
+  );
+};
+
+// Layout for auth pages without sidebar
+const AuthLayout = ({ children }: { children: React.ReactNode }) => {
+  return (
+    <div className="min-h-screen pt-16">
+      {children}
+    </div>
+  );
+};
 
 const App = () => {
   return (
@@ -42,19 +67,19 @@ const App = () => {
                   <Toaster />
                   <Sonner />
                   <Routes>
-                    <Route path="/" element={<Index />} />
-                    <Route path="/login" element={<Login />} />
-                    <Route path="/signup" element={<SignUp />} />
+                    <Route path="/" element={<AppLayout><Index /></AppLayout>} />
+                    <Route path="/login" element={<AuthLayout><Login /></AuthLayout>} />
+                    <Route path="/signup" element={<AuthLayout><SignUp /></AuthLayout>} />
                     
                     {/* AI Code Review route */}
-                    <Route path="/ai-code-review" element={<AICodeReview />} />
+                    <Route path="/ai-code-review" element={<AppLayout><AICodeReview /></AppLayout>} />
                     
                     {/* Protect personalized-learning route */}
                     <Route 
                       path="/personalized-learning" 
                       element={
                         <ProtectedRoute>
-                          <PersonalizedLearning />
+                          <AppLayout><PersonalizedLearning /></AppLayout>
                         </ProtectedRoute>
                       } 
                     />
@@ -64,7 +89,7 @@ const App = () => {
                       path="/learning-session" 
                       element={
                         <ProtectedRoute>
-                          <LearningSession />
+                          <AppLayout><LearningSession /></AppLayout>
                         </ProtectedRoute>
                       } 
                     />
@@ -72,7 +97,7 @@ const App = () => {
                       path="/learning-session/:topicId" 
                       element={
                         <ProtectedRoute>
-                          <LearningSession />
+                          <AppLayout><LearningSession /></AppLayout>
                         </ProtectedRoute>
                       } 
                     />
@@ -86,7 +111,9 @@ const App = () => {
                       path="/dsa-chat-prompt" 
                       element={
                         <ProtectedRoute>
-                          <DSAChatPrompt />
+                          <AppLayout>
+                            <DSAChatPrompt />
+                          </AppLayout>
                         </ProtectedRoute>
                       } 
                     />
@@ -95,7 +122,7 @@ const App = () => {
                       element={
                         <ProtectedRoute>
                           <DSAProtectedRoute requiresProblem={true}>
-                            <DSAProblem />
+                            <AppLayout><DSAProblem /></AppLayout>
                           </DSAProtectedRoute>
                         </ProtectedRoute>
                       } 
@@ -105,7 +132,7 @@ const App = () => {
                       element={
                         <ProtectedRoute>
                           <DSAProtectedRoute requiresProblem={true}>
-                            <DSARevealAnswer />
+                            <AppLayout><DSARevealAnswer /></AppLayout>
                           </DSAProtectedRoute>
                         </ProtectedRoute>
                       } 
@@ -114,7 +141,7 @@ const App = () => {
                       path="/code-history" 
                       element={
                         <ProtectedRoute>
-                          <CodeHistory />
+                          <AppLayout><CodeHistory /></AppLayout>
                         </ProtectedRoute>
                       } 
                     />
@@ -122,7 +149,7 @@ const App = () => {
                       path="/user-profile" 
                       element={
                         <ProtectedRoute>
-                          <UserProfile />
+                          <AppLayout><UserProfile /></AppLayout>
                         </ProtectedRoute>
                       } 
                     />
@@ -130,7 +157,7 @@ const App = () => {
                       path="/settings" 
                       element={
                         <ProtectedRoute>
-                          <Settings />
+                          <AppLayout><Settings /></AppLayout>
                         </ProtectedRoute>
                       } 
                     />
@@ -138,13 +165,13 @@ const App = () => {
                       path="/community" 
                       element={
                         <ProtectedRoute>
-                          <Community />
+                          <AppLayout><Community /></AppLayout>
                         </ProtectedRoute>
                       } 
                     />
                     
                     {/* Catch-all route */}
-                    <Route path="*" element={<NotFound />} />
+                    <Route path="*" element={<AuthLayout><NotFound /></AuthLayout>} />
                   </Routes>
                 </TooltipProvider>
               </LearningProfileProvider>

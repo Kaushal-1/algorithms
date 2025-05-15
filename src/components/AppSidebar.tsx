@@ -1,0 +1,125 @@
+
+import React from 'react';
+import { Link, useLocation } from "react-router-dom";
+import { 
+  FileCode, 
+  Home, 
+  MessageSquare, 
+  Clock, 
+  Users, 
+  BookOpen,
+  ChevronRight
+} from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { 
+  Sidebar, 
+  SidebarContent, 
+  SidebarFooter,
+  SidebarGroup, 
+  SidebarGroupLabel, 
+  SidebarGroupContent,
+  SidebarMenu, 
+  SidebarMenuItem, 
+  SidebarMenuButton
+} from "@/components/ui/sidebar";
+import { Button } from "@/components/ui/button";
+
+const AppSidebar = () => {
+  const location = useLocation();
+  
+  const mainNavItems = [
+    {
+      title: "Home",
+      icon: Home,
+      path: "/",
+    },
+    {
+      title: "AI Guru",
+      icon: () => (
+        <Avatar className="h-5 w-5">
+          <AvatarImage src="/ai-guru-avatar.png" alt="AI Guru" />
+          <AvatarFallback>AI</AvatarFallback>
+        </Avatar>
+      ),
+      path: "/personalized-learning",
+    },
+    {
+      title: "DSA Trainer",
+      icon: BookOpen,
+      path: "/dsa-chat-prompt",
+    },
+    {
+      title: "AI Review",
+      icon: FileCode,
+      path: "/ai-code-review",
+    },
+    {
+      title: "History",
+      icon: Clock,
+      path: "/code-history",
+    },
+    {
+      title: "Community",
+      icon: Users,
+      path: "/community",
+    },
+  ];
+  
+  return (
+    <Sidebar>
+      <SidebarContent>
+        <SidebarGroup>
+          <SidebarGroupLabel>Navigation</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {mainNavItems.map((item) => {
+                const Icon = item.icon;
+                const isActive = location.pathname === item.path;
+                
+                return (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton 
+                      asChild
+                      isActive={isActive}
+                      tooltip={item.title}
+                    >
+                      <Link to={item.path}>
+                        {typeof Icon === 'function' ? <Icon /> : <Icon className="h-5 w-5" />}
+                        <span>{item.title}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                );
+              })}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+        
+        <SidebarGroup>
+          <SidebarGroupLabel>Discover</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <Button variant="outline" className="w-full justify-between">
+              <div className="flex items-center gap-2">
+                <MessageSquare className="h-4 w-4" />
+                <span>Start learning</span>
+              </div>
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </SidebarGroupContent>
+        </SidebarGroup>
+      </SidebarContent>
+      
+      <SidebarFooter>
+        <div className="p-2">
+          <div className="rounded-md bg-muted/30 p-3">
+            <h4 className="font-medium text-sm mb-1">Upgrade to Pro</h4>
+            <p className="text-xs text-muted-foreground mb-2">Get unlimited access to all features</p>
+            <Button size="sm" className="w-full">Upgrade now</Button>
+          </div>
+        </div>
+      </SidebarFooter>
+    </Sidebar>
+  );
+};
+
+export default AppSidebar;

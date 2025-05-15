@@ -37,15 +37,18 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({
         ))}
         
         {isProcessing && (
-          <div className="flex items-center space-x-2 text-sm text-muted-foreground p-3 rounded-lg bg-muted/30 max-w-[80%] ml-auto">
+          <div className="flex items-center gap-2 text-sm text-muted-foreground p-3 rounded-xl bg-muted/20 border border-border/50 max-w-[80%] ml-auto">
             <Loader className="h-4 w-4 animate-spin" />
             <span>AI tutor is thinking...</span>
           </div>
         )}
         
         {messages.length === 0 && !isProcessing && (
-          <div className="flex items-center justify-center p-8">
-            <p className="text-muted-foreground">Loading conversation...</p>
+          <div className="flex flex-col items-center justify-center h-full p-8">
+            <div className="w-16 h-16 bg-muted/30 rounded-full flex items-center justify-center mb-4">
+              <span className="text-2xl">👋</span>
+            </div>
+            <p className="text-muted-foreground">Start a conversation with your AI tutor</p>
           </div>
         )}
       </div>
