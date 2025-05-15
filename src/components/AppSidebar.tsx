@@ -73,7 +73,7 @@ const AppSidebar = () => {
           <SidebarGroupContent>
             <SidebarMenu>
               {mainNavItems.map((item) => {
-                const Icon = item.icon;
+                const IconComponent = item.icon;
                 const isActive = location.pathname === item.path;
                 
                 return (
@@ -84,7 +84,9 @@ const AppSidebar = () => {
                       tooltip={item.title}
                     >
                       <Link to={item.path}>
-                        {typeof Icon === 'function' ? <Icon /> : <Icon className="h-5 w-5" />}
+                        {typeof IconComponent === 'function' ? 
+                          <IconComponent /> : 
+                          <IconComponent className="h-5 w-5" />}
                         <span>{item.title}</span>
                       </Link>
                     </SidebarMenuButton>
