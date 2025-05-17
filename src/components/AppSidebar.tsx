@@ -8,7 +8,8 @@ import {
   Clock, 
   Users, 
   BookOpen,
-  ChevronRight
+  ChevronRight,
+  FileText
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { 
@@ -39,6 +40,11 @@ const AppSidebar = () => {
       title: "Home",
       icon: Home,
       path: "/",
+    },
+    {
+      title: "Blogs",
+      icon: FileText,
+      path: "/blogs",
     },
     {
       title: "AI Guru",

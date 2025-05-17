@@ -26,6 +26,7 @@ import Community from "./pages/Community";
 import PersonalizedLearning from "./pages/PersonalizedLearning";
 import LearningSession from "./pages/LearningSession";
 import AICodeReview from "./pages/AICodeReview";
+import Blogs from "./pages/Blogs"; // Import the new Blogs page
 import { SidebarProvider } from "./components/ui/sidebar";
 import AppSidebar from "./components/AppSidebar";
 
@@ -70,6 +71,9 @@ const App = () => {
                     <Route path="/" element={<AppLayout><Index /></AppLayout>} />
                     <Route path="/login" element={<AuthLayout><Login /></AuthLayout>} />
                     <Route path="/signup" element={<AuthLayout><SignUp /></AuthLayout>} />
+                    
+                    {/* Blogs route */}
+                    <Route path="/blogs" element={<AppLayout><Blogs /></AppLayout>} />
                     
                     {/* AI Code Review route */}
                     <Route path="/ai-code-review" element={<AppLayout><AICodeReview /></AppLayout>} />
