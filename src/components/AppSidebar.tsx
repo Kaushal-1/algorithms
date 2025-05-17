@@ -1,138 +1,166 @@
-
 import React from 'react';
-import { Link, useLocation } from "react-router-dom";
-import { 
-  FileCode, 
-  Home, 
-  MessageSquare, 
-  Clock, 
-  Users, 
+import { Link, useLocation } from 'react-router-dom';
+import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { useAuth } from '@/contexts/AuthContext';
+import {
+  Home,
+  Code2,
   BookOpen,
+  Users,
+  MessageSquare,
+  Settings,
+  LogOut,
+  ChevronLeft,
   ChevronRight,
-  FileText
-} from "lucide-react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { 
-  Sidebar, 
-  SidebarContent, 
-  SidebarFooter,
-  SidebarGroup, 
-  SidebarGroupLabel, 
-  SidebarGroupContent,
-  SidebarMenu, 
-  SidebarMenuItem, 
-  SidebarMenuButton
-} from "@/components/ui/sidebar";
-import { Button } from "@/components/ui/button";
+  FileText,
+} from 'lucide-react';
 
-// Define the type for our navigation items
-type NavItem = {
-  title: string;
-  icon: React.ElementType | React.FC | (() => JSX.Element);
-  path: string;
+interface SidebarProps {
+  collapsed: boolean;
+  setCollapsed: (collapsed: boolean) => void;
+}
+
+const AppSidebar: React.FC<SidebarProps> = ({ collapsed, setCollapsed }) => {
+  const { pathname } = useLocation();
+  const { signOut } = useAuth();
+
+  const iconSize = collapsed ? 22 : 20;
+  
+  const isActive = (path: string) => {
+    return pathname === path || pathname.startsWith(`${path}/`);
+  };
+
+  return (
+    <div
+      className={cn(
+        "group/sidebar h-screen bg-card border-r border-border/40 relative flex flex-col",
+        collapsed ? "w-16" : "w-56"
+      )}
+    >
+      <div className="h-16 flex items-center justify-center border-b border-border/40">
+        <Link to="/" className="flex items-center justify-center">
+          <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-bold">
+            A
+          </div>
+          {!collapsed && (
+            <span className="ml-2 font-heading font-semibold text-lg">AlgoAcademy</span>
+          )}
+        </Link>
+      </div>
+
+      <ScrollArea className="flex-1 py-4">
+        <div className="px-2 space-y-1">
+          <SidebarItem
+            to="/dashboard"
+            icon={<Home size={iconSize} />}
+            label="Dashboard"
+            active={isActive('/dashboard')}
+            collapsed={collapsed}
+          />
+          <SidebarItem
+            to="/problems"
+            icon={<Code2 size={iconSize} />}
+            label="Problems"
+            active={isActive('/problems')}
+            collapsed={collapsed}
+          />
+          <SidebarItem
+            to="/learn"
+            icon={<BookOpen size={iconSize} />}
+            label="Learn"
+            active={isActive('/learn')}
+            collapsed={collapsed}
+          />
+          <SidebarItem
+            to="/community"
+            icon={<Users size={iconSize} />}
+            label="Community"
+            active={isActive('/community')}
+            collapsed={collapsed}
+          />
+          <SidebarItem
+            to="/blogs"
+            icon={<FileText size={iconSize} />}
+            label="Blogs"
+            active={isActive('/blogs')}
+            collapsed={collapsed}
+          />
+          <SidebarItem
+            to="/discussions"
+            icon={<MessageSquare size={iconSize} />}
+            label="Discussions"
+            active={isActive('/discussions')}
+            collapsed={collapsed}
+          />
+        </div>
+      </ScrollArea>
+
+      <div className="p-2 border-t border-border/40 space-y-1">
+        <SidebarItem
+          to="/settings"
+          icon={<Settings size={iconSize} />}
+          label="Settings"
+          active={isActive('/settings')}
+          collapsed={collapsed}
+        />
+        <Button
+          variant="ghost"
+          className={cn(
+            "w-full justify-start text-muted-foreground hover:text-foreground hover:bg-accent/50",
+            collapsed ? "px-2" : "px-3"
+          )}
+          onClick={signOut}
+        >
+          <LogOut size={iconSize} />
+          {!collapsed && <span className="ml-2">Sign out</span>}
+        </Button>
+      </div>
+
+      <Button
+        variant="ghost"
+        size="icon"
+        className="absolute -right-3 top-20 h-6 w-6 rounded-full border border-border/40 bg-background hidden group-hover/sidebar:flex"
+        onClick={() => setCollapsed(!collapsed)}
+      >
+        {collapsed ? <ChevronRight size={12} /> : <ChevronLeft size={12} />}
+      </Button>
+    </div>
+  );
 };
 
-const AppSidebar = () => {
-  const location = useLocation();
-  
-  const mainNavItems: NavItem[] = [
-    {
-      title: "Home",
-      icon: Home,
-      path: "/",
-    },
-    {
-      title: "Blogs",
-      icon: FileText,
-      path: "/blogs",
-    },
-    {
-      title: "AI Guru",
-      icon: () => (
-        <Avatar className="h-5 w-5">
-          <AvatarImage src="/ai-guru-avatar.png" alt="AI Guru" />
-          <AvatarFallback>AI</AvatarFallback>
-        </Avatar>
-      ),
-      path: "/personalized-learning",
-    },
-    {
-      title: "DSA Trainer",
-      icon: BookOpen,
-      path: "/dsa-chat-prompt",
-    },
-    {
-      title: "AI Review",
-      icon: FileCode,
-      path: "/ai-code-review",
-    },
-    {
-      title: "History",
-      icon: Clock,
-      path: "/code-history",
-    },
-    {
-      title: "Community",
-      icon: Users,
-      path: "/community",
-    },
-  ];
-  
+interface SidebarItemProps {
+  to: string;
+  icon: React.ReactNode;
+  label: string;
+  active: boolean;
+  collapsed: boolean;
+}
+
+const SidebarItem: React.FC<SidebarItemProps> = ({
+  to,
+  icon,
+  label,
+  active,
+  collapsed,
+}) => {
   return (
-    <Sidebar>
-      <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupLabel>Navigation</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {mainNavItems.map((item) => {
-                const isActive = location.pathname === item.path;
-                
-                return (
-                  <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton 
-                      asChild
-                      isActive={isActive}
-                      tooltip={item.title}
-                    >
-                      <Link to={item.path}>
-                        {typeof item.icon === 'function' 
-                          ? item.icon()
-                          : <item.icon className="h-5 w-5" />}
-                        <span>{item.title}</span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                );
-              })}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-        
-        <SidebarGroup>
-          <SidebarGroupLabel>Discover</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <Button variant="outline" className="w-full justify-between">
-              <div className="flex items-center gap-2">
-                <MessageSquare className="h-4 w-4" />
-                <span>Start learning</span>
-              </div>
-              <ChevronRight className="h-4 w-4" />
-            </Button>
-          </SidebarGroupContent>
-        </SidebarGroup>
-      </SidebarContent>
-      
-      <SidebarFooter>
-        <div className="p-2">
-          <div className="rounded-md bg-muted/30 p-3">
-            <h4 className="font-medium text-sm mb-1">Upgrade to Pro</h4>
-            <p className="text-xs text-muted-foreground mb-2">Get unlimited access to all features</p>
-            <Button size="sm" className="w-full">Upgrade now</Button>
-          </div>
-        </div>
-      </SidebarFooter>
-    </Sidebar>
+    <Link to={to}>
+      <Button
+        variant="ghost"
+        className={cn(
+          "w-full justify-start",
+          collapsed ? "px-2" : "px-3",
+          active
+            ? "bg-accent/50 text-foreground"
+            : "text-muted-foreground hover:text-foreground hover:bg-accent/50"
+        )}
+      >
+        {icon}
+        {!collapsed && <span className="ml-2">{label}</span>}
+      </Button>
+    </Link>
   );
 };
 
