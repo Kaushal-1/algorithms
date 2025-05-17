@@ -24,10 +24,17 @@ import {
 } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
 
+// Define the type for our navigation items
+type NavItem = {
+  title: string;
+  icon: React.ElementType | (() => JSX.Element);
+  path: string;
+};
+
 const AppSidebar = () => {
   const location = useLocation();
   
-  const mainNavItems = [
+  const mainNavItems: NavItem[] = [
     {
       title: "Home",
       icon: Home,
@@ -73,7 +80,6 @@ const AppSidebar = () => {
           <SidebarGroupContent>
             <SidebarMenu>
               {mainNavItems.map((item) => {
-                const IconComponent = item.icon;
                 const isActive = location.pathname === item.path;
                 
                 return (
@@ -84,9 +90,9 @@ const AppSidebar = () => {
                       tooltip={item.title}
                     >
                       <Link to={item.path}>
-                        {typeof IconComponent === 'function' ? 
-                          <IconComponent /> : 
-                          <IconComponent className="h-5 w-5" />}
+                        {typeof item.icon === 'function' 
+                          ? item.icon()
+                          : React.createElement(item.icon, { className: "h-5 w-5" })}
                         <span>{item.title}</span>
                       </Link>
                     </SidebarMenuButton>
