@@ -27,7 +27,7 @@ import { Button } from "@/components/ui/button";
 // Define the type for our navigation items
 type NavItem = {
   title: string;
-  icon: React.ElementType | (() => JSX.Element);
+  icon: React.ElementType | React.FC | (() => JSX.Element);
   path: string;
 };
 
@@ -92,7 +92,7 @@ const AppSidebar = () => {
                       <Link to={item.path}>
                         {typeof item.icon === 'function' 
                           ? item.icon()
-                          : React.createElement(item.icon, { className: "h-5 w-5" })}
+                          : <item.icon className="h-5 w-5" />}
                         <span>{item.title}</span>
                       </Link>
                     </SidebarMenuButton>
