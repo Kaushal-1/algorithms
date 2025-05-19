@@ -30,13 +30,15 @@ const BlogCard: React.FC<BlogCardProps> = ({ blog }) => {
 
   return (
     <Card className="overflow-hidden border border-border/40 bg-card hover:border-primary/30 transition-colors hover:shadow-md hover:-translate-y-1 duration-300">
-      <div className="aspect-video w-full overflow-hidden">
-        <img 
-          src={coverImage} 
-          alt={blog.title} 
-          className="w-full h-full object-cover transition-transform hover:scale-105 duration-700"
-        />
-      </div>
+      <Link to={`/blogs/${blog.id}`}>
+        <div className="aspect-video w-full overflow-hidden">
+          <img 
+            src={coverImage} 
+            alt={blog.title} 
+            className="w-full h-full object-cover transition-transform hover:scale-105 duration-700"
+          />
+        </div>
+      </Link>
       
       <CardHeader className="p-4 pb-2">
         <Link to={`/blogs/${blog.id}`} className="hover:text-primary transition-colors">

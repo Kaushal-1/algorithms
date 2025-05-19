@@ -21,3 +21,20 @@ export interface NewBlog {
   content: string;
   cover_image?: string;
 }
+
+export interface Comment {
+  id: string;
+  blog_id: string;
+  user_id: string;
+  content: string;
+  created_at: string;
+  author?: {
+    username: string;
+    avatar_url?: string;
+  };
+}
+
+export interface NewComment {
+  blog_id: string;
+  content: string;
+}
