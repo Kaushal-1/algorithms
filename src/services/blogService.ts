@@ -196,12 +196,13 @@ export async function getTrendingBlogs(): Promise<BlogWithAuthor[]> {
 
     // Transform the data to match the BlogWithAuthor interface with safe type handling
     return blogs.map(blog => {
-      const profiles = blog.profiles as { username?: string; avatar_url?: string } | null;
+      // Use any type here temporarily to bypass TypeScript's strict checking
+      const blogAny = blog as any;
       return {
         ...blog,
         author: {
-          username: profiles?.username || "Anonymous",
-          avatar_url: profiles?.avatar_url,
+          username: blogAny.profiles?.username || "Anonymous",
+          avatar_url: blogAny.profiles?.avatar_url,
         }
       };
     });
@@ -233,12 +234,13 @@ export async function getBlogsByTopic(topic: string): Promise<BlogWithAuthor[]> 
 
     // Transform the data with safe handling of potentially undefined properties
     return blogs.map(blog => {
-      const profiles = blog.profiles as { username?: string; avatar_url?: string } | null;
+      // Use any type here temporarily to bypass TypeScript's strict checking
+      const blogAny = blog as any;
       return {
         ...blog,
         author: {
-          username: profiles?.username || "Anonymous",
-          avatar_url: profiles?.avatar_url,
+          username: blogAny.profiles?.username || "Anonymous",
+          avatar_url: blogAny.profiles?.avatar_url,
         }
       };
     });
@@ -274,12 +276,13 @@ export async function searchBlogs(query: string): Promise<BlogWithAuthor[]> {
 
     // Transform the data with safe handling of potentially undefined properties
     return blogs.map(blog => {
-      const profiles = blog.profiles as { username?: string; avatar_url?: string } | null;
+      // Use any type here temporarily to bypass TypeScript's strict checking
+      const blogAny = blog as any;
       return {
         ...blog,
         author: {
-          username: profiles?.username || "Anonymous",
-          avatar_url: profiles?.avatar_url,
+          username: blogAny.profiles?.username || "Anonymous",
+          avatar_url: blogAny.profiles?.avatar_url,
         }
       };
     });
@@ -292,7 +295,7 @@ export async function searchBlogs(query: string): Promise<BlogWithAuthor[]> {
 export async function incrementBlogViews(blogId: string): Promise<void> {
   try {
     // Use type assertion to handle TypeScript error with RPC function name
-    const { error } = await supabase.rpc('increment_blog_view' as any, { blog_id: blogId });
+    const { error } = await supabase.rpc('increment_blog_view', { blog_id: blogId });
     
     if (error) {
       // If the RPC doesn't exist, fall back to a direct update
