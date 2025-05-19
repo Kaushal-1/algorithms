@@ -228,7 +228,7 @@ export async function searchBlogs(query: string): Promise<BlogWithAuthor[]> {
 
 export async function incrementBlogViews(blogId: string): Promise<void> {
   try {
-    const { error } = await supabase.rpc('increment_blog_view', { blog_id: blogId });
+    const { error } = await supabase.rpc('increment_blog_view' as any, { blog_id: blogId });
     
     if (error) {
       // If the RPC doesn't exist, fall back to a direct update
