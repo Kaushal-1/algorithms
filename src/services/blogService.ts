@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { Blog, BlogWithAuthor, Comment, NewBlog, NewComment } from "@/types/Blog";
 
@@ -34,8 +35,8 @@ export async function getBlogs(): Promise<BlogWithAuthor[]> {
         return {
           ...blog,
           author: {
-            username: profile.username || "Anonymous",
-            avatar_url: profile.avatar_url,
+            username: profile?.username || "Anonymous",
+            avatar_url: profile?.avatar_url,
           },
         };
       })
@@ -82,8 +83,8 @@ export async function getBlogsByUser(userId: string): Promise<BlogWithAuthor[]> 
         return {
           ...blog,
           author: {
-            username: profile.username || "Anonymous",
-            avatar_url: profile.avatar_url,
+            username: profile?.username || "Anonymous",
+            avatar_url: profile?.avatar_url,
           },
         };
       })
@@ -158,8 +159,8 @@ export async function getPersonalizedFeed(): Promise<BlogWithAuthor[]> {
         return {
           ...blog,
           author: {
-            username: profile.username || "Anonymous",
-            avatar_url: profile.avatar_url,
+            username: profile?.username || "Anonymous",
+            avatar_url: profile?.avatar_url,
           },
         };
       })
@@ -175,6 +176,7 @@ export async function getPersonalizedFeed(): Promise<BlogWithAuthor[]> {
 
 export async function getTrendingBlogs(): Promise<BlogWithAuthor[]> {
   try {
+    // Using joined query with proper type handling
     const { data: blogs, error } = await supabase
       .from("blogs")
       .select(`
@@ -192,7 +194,7 @@ export async function getTrendingBlogs(): Promise<BlogWithAuthor[]> {
       return [];
     }
 
-    // Transform the data to match the BlogWithAuthor interface
+    // Transform the data to match the BlogWithAuthor interface with safe type handling
     return blogs.map(blog => ({
       ...blog,
       author: {
@@ -208,6 +210,7 @@ export async function getTrendingBlogs(): Promise<BlogWithAuthor[]> {
 
 export async function getBlogsByTopic(topic: string): Promise<BlogWithAuthor[]> {
   try {
+    // Using joined query with proper type handling
     const { data: blogs, error } = await supabase
       .from("blogs")
       .select(`
@@ -225,7 +228,7 @@ export async function getBlogsByTopic(topic: string): Promise<BlogWithAuthor[]> 
       return [];
     }
 
-    // Transform the data to match the BlogWithAuthor interface
+    // Transform the data with safe handling of potentially undefined properties
     return blogs.map(blog => ({
       ...blog,
       author: {
@@ -245,6 +248,7 @@ export async function searchBlogs(query: string): Promise<BlogWithAuthor[]> {
       return [];
     }
     
+    // Using joined query with proper type handling
     const { data: blogs, error } = await supabase
       .from("blogs")
       .select(`
@@ -262,7 +266,7 @@ export async function searchBlogs(query: string): Promise<BlogWithAuthor[]> {
       return [];
     }
 
-    // Transform the data to match the BlogWithAuthor interface
+    // Transform the data with safe handling of potentially undefined properties
     return blogs.map(blog => ({
       ...blog,
       author: {
@@ -278,6 +282,7 @@ export async function searchBlogs(query: string): Promise<BlogWithAuthor[]> {
 
 export async function incrementBlogViews(blogId: string): Promise<void> {
   try {
+    // Use type assertion to handle TypeScript error with RPC function name
     const { error } = await supabase.rpc('increment_blog_view' as any, { blog_id: blogId });
     
     if (error) {
