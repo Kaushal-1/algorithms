@@ -173,56 +173,106 @@ export async function getPersonalizedFeed(): Promise<BlogWithAuthor[]> {
   }
 }
 
-export async function searchBlogs(query: string): Promise<BlogWithAuthor[]> {
+export async function getTrendingBlogs(): Promise<BlogWithAuthor[]> {
   try {
-    if (!query || query.trim() === '') {
+    const { data: blogs, error } = await supabase
+      .from("blogs")
+      .select(`
+        *,
+        profiles:user_id (
+          username,
+          avatar_url
+        )
+      `)
+      .order('view_count', { ascending: false })
+      .limit(5);
+
+    if (error) {
+      console.error("Error fetching trending blogs:", error);
       return [];
     }
 
-    // Use the pg_trgm indexes we created for a text search
+    // Transform the data to match the BlogWithAuthor interface
+    return blogs.map(blog => ({
+      ...blog,
+      author: {
+        username: blog.profiles?.username || "Anonymous",
+        avatar_url: blog.profiles?.avatar_url,
+      }
+    }));
+  } catch (error) {
+    console.error("Error in getTrendingBlogs:", error);
+    return [];
+  }
+}
+
+export async function getBlogsByTopic(topic: string): Promise<BlogWithAuthor[]> {
+  try {
     const { data: blogs, error } = await supabase
       .from("blogs")
-      .select("*")
-      .or(`title.ilike.%${query}%,content.ilike.%${query}%`)
-      .order("created_at", { ascending: false });
+      .select(`
+        *,
+        profiles:user_id (
+          username,
+          avatar_url
+        )
+      `)
+      .ilike('content', `%${topic}%`)
+      .order('created_at', { ascending: false });
 
     if (error) {
-      throw new Error(error.message);
+      console.error(`Error fetching blogs by topic '${topic}':`, error);
+      return [];
     }
 
-    // Fetch author information for each blog
-    const blogsWithAuthors = await Promise.all(
-      (blogs as Blog[]).map(async (blog) => {
-        const { data: profile, error: profileError } = await supabase
-          .from("profiles")
-          .select("username, avatar_url")
-          .eq("id", blog.user_id)
-          .single();
-
-        if (profileError) {
-          console.error("Error fetching profile:", profileError);
-          return {
-            ...blog,
-            author: {
-              username: "Unknown User",
-            },
-          };
-        }
-
-        return {
-          ...blog,
-          author: {
-            username: profile.username || "Anonymous",
-            avatar_url: profile.avatar_url,
-          },
-        };
-      })
-    );
-
-    return blogsWithAuthors;
+    // Transform the data to match the BlogWithAuthor interface
+    return blogs.map(blog => ({
+      ...blog,
+      author: {
+        username: blog.profiles?.username || "Anonymous",
+        avatar_url: blog.profiles?.avatar_url,
+      }
+    }));
   } catch (error) {
-    console.error("Error searching blogs:", error);
-    throw error;
+    console.error(`Error in getBlogsByTopic for '${topic}':`, error);
+    return [];
+  }
+}
+
+export async function searchBlogs(query: string): Promise<BlogWithAuthor[]> {
+  try {
+    if (!query || query.trim().length < 2) {
+      return [];
+    }
+    
+    const { data: blogs, error } = await supabase
+      .from("blogs")
+      .select(`
+        *,
+        profiles:user_id (
+          username,
+          avatar_url
+        )
+      `)
+      .or(`title.ilike.%${query}%,content.ilike.%${query}%`)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error(`Error searching blogs for '${query}':`, error);
+      return [];
+    }
+
+    // Transform the data to match the BlogWithAuthor interface
+    return blogs.map(blog => ({
+      ...blog,
+      author: {
+        username: blog.profiles?.username || "Anonymous",
+        avatar_url: blog.profiles?.avatar_url,
+      }
+    }));
+  } catch (error) {
+    console.error(`Error in searchBlogs for '${query}':`, error);
+    return [];
   }
 }
 
@@ -232,30 +282,33 @@ export async function incrementBlogViews(blogId: string): Promise<void> {
     
     if (error) {
       // If the RPC doesn't exist, fall back to a direct update
-      const { data: blog, error: selectError } = await supabase
+      console.error("Error incrementing blog view using RPC:", error);
+      
+      // Direct update fallback
+      const { data: blog, error: fetchError } = await supabase
         .from("blogs")
         .select("view_count")
         .eq("id", blogId)
         .single();
       
-      if (selectError) {
-        throw new Error(selectError.message);
+      if (fetchError) {
+        console.error("Error fetching blog for view count update:", fetchError);
+        return;
       }
       
-      const newViewCount = (blog?.view_count || 0) + 1;
+      const currentViews = blog?.view_count || 0;
       
       const { error: updateError } = await supabase
         .from("blogs")
-        .update({ view_count: newViewCount })
+        .update({ view_count: currentViews + 1 })
         .eq("id", blogId);
       
       if (updateError) {
-        throw new Error(updateError.message);
+        console.error("Error updating blog view count:", updateError);
       }
     }
   } catch (error) {
-    console.error("Error incrementing blog views:", error);
-    // Don't throw, just log the error
+    console.error("Unexpected error in incrementBlogViews:", error);
   }
 }
 

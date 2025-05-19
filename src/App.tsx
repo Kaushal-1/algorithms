@@ -1,5 +1,4 @@
-
-import React from "react";
+import React, { useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -29,6 +28,10 @@ import AICodeReview from "./pages/AICodeReview";
 import Blogs from "./pages/Blogs";
 import { SidebarProvider } from "./components/ui/sidebar";
 import AppSidebar from "./components/AppSidebar";
+import { useAuth } from "./contexts/AuthContext";
+import { setupRPCFunctions } from '@/services/rpcSetup';
+import { getNotifications } from '@/services/notificationService';
+import { useQuery } from '@tanstack/react-query';
 
 // Initialize QueryClient outside of the component to avoid recreation on renders
 const queryClient = new QueryClient();
@@ -57,6 +60,25 @@ const AuthLayout = ({ children }: { children: React.ReactNode }) => {
 };
 
 const App = () => {
+  const { user } = useAuth();
+
+  // Initialize RPC functions
+  useEffect(() => {
+    setupRPCFunctions()
+      .catch(error => {
+        console.error("Failed to setup RPC functions:", error);
+      });
+  }, []);
+  
+  // Fetch notifications if user is logged in
+  useQuery({
+    queryKey: ['notifications'],
+    queryFn: getNotifications,
+    enabled: !!user,
+    refetchInterval: 60000, // Refetch every minute
+    refetchOnWindowFocus: true,
+  });
+
   return (
     <React.StrictMode>
       <QueryClientProvider client={queryClient}>
