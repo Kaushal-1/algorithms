@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { Blog, BlogWithAuthor, NewBlog } from "@/types/Blog";
 
@@ -75,6 +74,48 @@ export async function createBlog(blog: NewBlog): Promise<Blog> {
     return data;
   } catch (error) {
     console.error("Error creating blog:", error);
+    throw error;
+  }
+}
+
+export async function deleteBlog(blogId: string): Promise<boolean> {
+  try {
+    const { data: userData, error: userError } = await supabase.auth.getSession();
+    
+    if (userError || !userData.session) {
+      throw new Error("User must be logged in to delete a blog");
+    }
+
+    const userId = userData.session.user.id;
+    
+    // First check if the blog belongs to the current user
+    const { data: blog, error: checkError } = await supabase
+      .from("blogs")
+      .select("user_id")
+      .eq("id", blogId)
+      .single();
+
+    if (checkError || !blog) {
+      throw new Error("Blog not found");
+    }
+
+    if (blog.user_id !== userId) {
+      throw new Error("You don't have permission to delete this blog");
+    }
+
+    // Delete the blog
+    const { error } = await supabase
+      .from("blogs")
+      .delete()
+      .eq("id", blogId);
+
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    return true;
+  } catch (error) {
+    console.error("Error deleting blog:", error);
     throw error;
   }
 }

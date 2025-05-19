@@ -1,9 +1,9 @@
 
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useParams, useNavigate } from 'react-router-dom';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getProfileById, updateProfile } from '@/services/profileService';
-import { getBlogs } from '@/services/blogService';
+import { getBlogs, deleteBlog } from '@/services/blogService';
 import { UserProfile, UpdateProfileRequest } from '@/types/UserProfile';
 import { useAuth } from '@/contexts/AuthContext';
 import { Badge } from '@/components/ui/badge';
@@ -13,7 +13,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Check, Edit, Github, Globe, Linkedin, Twitter, User, X } from 'lucide-react';
+import { Check, Edit, Github, Globe, Linkedin, Twitter, User, X, Trash2 } from 'lucide-react';
 import BlogCard from '@/components/BlogCard';
 import { Separator } from '@/components/ui/separator';
 import { 
@@ -22,15 +22,23 @@ import {
   DialogHeader, 
   DialogTitle, 
   DialogClose,
-  DialogFooter
+  DialogFooter,
+  DialogDescription
 } from '@/components/ui/dialog';
+import { useToast } from '@/hooks/use-toast';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 
 const UserProfilePage: React.FC = () => {
   const { userId } = useParams<{ userId: string }>();
   const { user } = useAuth();
+  const { toast } = useToast();
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [isEditing, setIsEditing] = useState(false);
   const [editedProfile, setEditedProfile] = useState<UpdateProfileRequest>({});
   const [activeTab, setActiveTab] = useState('blogs');
+  const [blogToDelete, setBlogToDelete] = useState<string | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   // Fetch the user profile
   const { data: profile, isLoading: isLoadingProfile, refetch } = useQuery({
@@ -40,7 +48,7 @@ const UserProfilePage: React.FC = () => {
   });
 
   // Fetch the user's blogs
-  const { data: blogs, isLoading: isLoadingBlogs } = useQuery({
+  const { data: blogs, isLoading: isLoadingBlogs, refetch: refetchBlogs } = useQuery({
     queryKey: ['user-blogs', userId || user?.id],
     queryFn: async () => {
       const allBlogs = await getBlogs();
@@ -48,6 +56,39 @@ const UserProfilePage: React.FC = () => {
     },
     enabled: !!userId || !!user?.id
   });
+
+  // Delete blog mutation
+  const deleteBlogMutation = useMutation({
+    mutationFn: deleteBlog,
+    onSuccess: () => {
+      toast({
+        title: "Blog deleted",
+        description: "The blog has been successfully deleted",
+      });
+      queryClient.invalidateQueries({ queryKey: ['user-blogs'] });
+      queryClient.invalidateQueries({ queryKey: ['blogs'] });
+      setBlogToDelete(null);
+      setDeleteDialogOpen(false);
+    },
+    onError: (error: Error) => {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error.message || "Failed to delete the blog",
+      });
+    }
+  });
+
+  const handleDeleteBlog = (blogId: string) => {
+    setBlogToDelete(blogId);
+    setDeleteDialogOpen(true);
+  };
+
+  const confirmDeleteBlog = () => {
+    if (blogToDelete) {
+      deleteBlogMutation.mutate(blogToDelete);
+    }
+  };
 
   useEffect(() => {
     if (profile) {
@@ -229,7 +270,19 @@ const UserProfilePage: React.FC = () => {
           ) : blogs && blogs.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {blogs.map(blog => (
-                <BlogCard key={blog.id} blog={blog} />
+                <div key={blog.id} className="relative">
+                  <BlogCard blog={blog} />
+                  {isOwnProfile && (
+                    <Button 
+                      variant="destructive" 
+                      size="icon"
+                      className="absolute top-2 right-2 z-10 rounded-full opacity-80 hover:opacity-100"
+                      onClick={() => handleDeleteBlog(blog.id)}
+                    >
+                      <Trash2 size={16} />
+                    </Button>
+                  )}
+                </div>
               ))}
             </div>
           ) : (
@@ -240,7 +293,7 @@ const UserProfilePage: React.FC = () => {
                   {isOwnProfile ? "You haven't published any blogs yet." : "This user hasn't published any blogs yet."}
                 </p>
                 {isOwnProfile && (
-                  <Button className="mt-4" variant="default">Create your first blog</Button>
+                  <Button className="mt-4" variant="default" onClick={() => navigate('/blogs')}>Create your first blog</Button>
                 )}
               </CardContent>
             </Card>
@@ -408,6 +461,27 @@ const UserProfilePage: React.FC = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Delete Blog Confirmation Dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete your blog post and remove it from our servers.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={confirmDeleteBlog}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deleteBlogMutation.isPending ? "Deleting..." : "Delete"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
