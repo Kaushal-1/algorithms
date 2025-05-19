@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -15,6 +14,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Input } from '@/components/ui/input';
 import { SidebarTrigger } from '@/components/ui/sidebar';
+import NotificationDropdown from './NotificationDropdown';
 
 const Navbar = () => {
   const location = useLocation();
@@ -66,51 +66,41 @@ const Navbar = () => {
                 <Github size={20} />
               </a>
               
-              {user ? (
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="rounded-full h-9 w-9 p-0">
-                      <Avatar className="h-9 w-9 border border-primary/30 hover:border-primary transition-colors">
-                        <AvatarImage src={profile?.avatar_url || "https://source.unsplash.com/random/400x400/?portrait"} />
-                        <AvatarFallback>{profile?.username?.[0]?.toUpperCase() || <User size={16} />}</AvatarFallback>
-                      </Avatar>
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent className="w-56" align="end" forceMount>
-                    <DropdownMenuLabel className="font-normal">
-                      <div className="flex flex-col space-y-1">
-                        <p className="text-sm font-medium leading-none">{profile?.username || user.email}</p>
-                        <p className="text-xs leading-none text-muted-foreground">
-                          {user.email}
-                        </p>
-                      </div>
-                    </DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem asChild>
-                      <Link to="/user-profile">Profile</Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <Link to="/settings">Settings</Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={() => signOut()} className="text-destructive">
-                      <span>Log out</span>
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              ) : !isAuthPage && (
-                <>
-                  <Link to="/login">
-                    <Button variant="ghost" className="text-foreground/80 hover:text-primary hover:bg-muted/40">
-                      Sign In
-                    </Button>
-                  </Link>
-                  <Link to="/signup">
-                    <Button className="bg-primary hover:bg-primary/90 text-primary-foreground">
-                      Get Started
-                    </Button>
-                  </Link>
-                </>
+              {user && (
+                <div className="flex items-center gap-2">
+                  <NotificationDropdown />
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" className="rounded-full h-9 w-9 p-0">
+                        <Avatar className="h-9 w-9 border border-primary/30 hover:border-primary transition-colors">
+                          <AvatarImage src={profile?.avatar_url || "https://source.unsplash.com/random/400x400/?portrait"} />
+                          <AvatarFallback>{profile?.username?.[0]?.toUpperCase() || <User size={16} />}</AvatarFallback>
+                        </Avatar>
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="w-56" align="end" forceMount>
+                      <DropdownMenuLabel className="font-normal">
+                        <div className="flex flex-col space-y-1">
+                          <p className="text-sm font-medium leading-none">{profile?.username || user.email}</p>
+                          <p className="text-xs leading-none text-muted-foreground">
+                            {user.email}
+                          </p>
+                        </div>
+                      </DropdownMenuLabel>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem asChild>
+                        <Link to="/user-profile">Profile</Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem asChild>
+                        <Link to="/settings">Settings</Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={() => signOut()} className="text-destructive">
+                        <span>Log out</span>
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
               )}
             </>
           )}

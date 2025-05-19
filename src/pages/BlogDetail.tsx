@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { formatDistanceToNow } from 'date-fns';
 import { useQuery } from '@tanstack/react-query';
-import { getBlogs } from '@/services/blogService';
+import { getBlogs, incrementBlogViews } from '@/services/blogService';
 import { BlogWithAuthor } from '@/types/Blog';
 import { useToast } from '@/hooks/use-toast';
 import { 
@@ -23,6 +23,7 @@ import {
   User 
 } from 'lucide-react';
 import { useMemo } from 'react';
+import FollowButton from '@/components/FollowButton';
 
 const BlogDetail: React.FC = () => {
   const { blogId } = useParams<{ blogId: string }>();
@@ -42,18 +43,22 @@ const BlogDetail: React.FC = () => {
     return blogs?.find(b => b.id === blogId);
   }, [blogs, blogId]);
 
-  // Simulate incrementing views when the page loads
+  // Increment view count when the page loads
   useEffect(() => {
-    if (blog) {
-      // In a real app, we would track this in the database
-      const randomViews = Math.floor(Math.random() * 100) + 20;
-      setViews(randomViews);
+    if (blog && blogId) {
+      // Increment view in the database
+      incrementBlogViews(blogId);
       
-      // Set initial random likes
-      const randomLikes = Math.floor(Math.random() * 50);
-      setLikes(randomLikes);
+      // Set local view count (either from the database or a fallback)
+      setViews(blog.view_count || Math.floor(Math.random() * 100) + 20);
+      
+      // Set initial random likes if not already in the blog data
+      if (!hasLiked) {
+        const randomLikes = Math.floor(Math.random() * 50);
+        setLikes(randomLikes);
+      }
     }
-  }, [blog]);
+  }, [blog, blogId]);
 
   const handleLike = () => {
     if (hasLiked) {
@@ -154,6 +159,9 @@ const BlogDetail: React.FC = () => {
               </div>
             </div>
           </Link>
+          
+          {/* Add follow button */}
+          <FollowButton userId={blog.user_id} />
           
           <div className="flex items-center gap-2 text-muted-foreground">
             <div title="Estimated read time" className="flex items-center">

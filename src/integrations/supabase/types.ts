@@ -49,6 +49,7 @@ export type Database = {
           title: string
           updated_at: string
           user_id: string
+          view_count: number | null
         }
         Insert: {
           content: string
@@ -57,6 +58,7 @@ export type Database = {
           title: string
           updated_at?: string
           user_id: string
+          view_count?: number | null
         }
         Update: {
           content?: string
@@ -65,6 +67,7 @@ export type Database = {
           title?: string
           updated_at?: string
           user_id?: string
+          view_count?: number | null
         }
         Relationships: []
       }
@@ -159,6 +162,33 @@ export type Database = {
         }
         Relationships: []
       }
+      notifications: {
+        Row: {
+          content: Json
+          created_at: string
+          id: string
+          is_read: boolean | null
+          type: string
+          user_id: string
+        }
+        Insert: {
+          content: Json
+          created_at?: string
+          id?: string
+          is_read?: boolean | null
+          type: string
+          user_id: string
+        }
+        Update: {
+          content?: Json
+          created_at?: string
+          id?: string
+          is_read?: boolean | null
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -213,6 +243,27 @@ export type Database = {
         }
         Relationships: []
       }
+      user_follows: {
+        Row: {
+          created_at: string
+          follower_id: string
+          following_id: string
+          id: string
+        }
+        Insert: {
+          created_at?: string
+          follower_id: string
+          following_id: string
+          id?: string
+        }
+        Update: {
+          created_at?: string
+          follower_id?: string
+          following_id?: string
+          id?: string
+        }
+        Relationships: []
+      }
       user_topics: {
         Row: {
           created_at: string
@@ -260,7 +311,38 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      gtrgm_compress: {
+        Args: { "": unknown }
+        Returns: unknown
+      }
+      gtrgm_decompress: {
+        Args: { "": unknown }
+        Returns: unknown
+      }
+      gtrgm_in: {
+        Args: { "": unknown }
+        Returns: unknown
+      }
+      gtrgm_options: {
+        Args: { "": unknown }
+        Returns: undefined
+      }
+      gtrgm_out: {
+        Args: { "": unknown }
+        Returns: unknown
+      }
+      set_limit: {
+        Args: { "": number }
+        Returns: number
+      }
+      show_limit: {
+        Args: Record<PropertyKey, never>
+        Returns: number
+      }
+      show_trgm: {
+        Args: { "": string }
+        Returns: string[]
+      }
     }
     Enums: {
       [_ in never]: never

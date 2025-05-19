@@ -1,489 +1,397 @@
 
-import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getProfileById, updateProfile } from '@/services/profileService';
-import { getBlogs, deleteBlog } from '@/services/blogService';
-import { UserProfile, UpdateProfileRequest } from '@/types/UserProfile';
-import { useAuth } from '@/contexts/AuthContext';
-import { Badge } from '@/components/ui/badge';
+import React, { useEffect, useState } from 'react';
+import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Check, Edit, Github, Globe, Linkedin, Twitter, User, X, Trash2 } from 'lucide-react';
-import BlogCard from '@/components/BlogCard';
-import { Separator } from '@/components/ui/separator';
 import { 
-  Dialog, 
-  DialogContent, 
-  DialogHeader, 
-  DialogTitle, 
-  DialogClose,
-  DialogFooter,
-  DialogDescription
-} from '@/components/ui/dialog';
-import { useToast } from '@/hooks/use-toast';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+  User, 
+  Mail, 
+  Link as LinkIcon, 
+  Github, 
+  Twitter, 
+  Linkedin,
+  Users,
+  Edit,
+  Grid,
+  ListFilter,
+  Calendar
+} from 'lucide-react';
+import { formatDistanceToNow } from 'date-fns';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Badge } from '@/components/ui/badge';
+import { useAuth } from '@/contexts/AuthContext';
+import { getBlogsByUser } from '@/services/blogService';
+import { getFollowers, getFollowing } from '@/services/followService';
+import BlogCard from '@/components/BlogCard';
+import FollowButton from '@/components/FollowButton';
+import { Follower } from '@/services/followService';
 
-const UserProfilePage: React.FC = () => {
+const UserProfile = () => {
   const { userId } = useParams<{ userId: string }>();
-  const { user } = useAuth();
-  const { toast } = useToast();
-  const navigate = useNavigate();
-  const queryClient = useQueryClient();
-  const [isEditing, setIsEditing] = useState(false);
-  const [editedProfile, setEditedProfile] = useState<UpdateProfileRequest>({});
   const [activeTab, setActiveTab] = useState('blogs');
-  const [blogToDelete, setBlogToDelete] = useState<string | null>(null);
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const isOwnProfile = user?.id === userId;
 
-  // Fetch the user profile
-  const { data: profile, isLoading: isLoadingProfile, refetch } = useQuery({
-    queryKey: ['profile', userId || user?.id],
-    queryFn: () => getProfileById(userId || user?.id || ''),
-    enabled: !!userId || !!user?.id
-  });
-
-  // Fetch the user's blogs
-  const { data: blogs, isLoading: isLoadingBlogs, refetch: refetchBlogs } = useQuery({
-    queryKey: ['user-blogs', userId || user?.id],
+  // Query user profile
+  const {
+    data: profile,
+    isLoading: isProfileLoading,
+    error: profileError,
+  } = useQuery({
+    queryKey: ['profile', userId],
     queryFn: async () => {
-      const allBlogs = await getBlogs();
-      return allBlogs.filter(blog => blog.user_id === (userId || user?.id));
-    },
-    enabled: !!userId || !!user?.id
-  });
-
-  // Delete blog mutation
-  const deleteBlogMutation = useMutation({
-    mutationFn: deleteBlog,
-    onSuccess: () => {
-      toast({
-        title: "Blog deleted",
-        description: "The blog has been successfully deleted",
-      });
-      queryClient.invalidateQueries({ queryKey: ['user-blogs'] });
-      queryClient.invalidateQueries({ queryKey: ['blogs'] });
-      setBlogToDelete(null);
-      setDeleteDialogOpen(false);
-    },
-    onError: (error: Error) => {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: error.message || "Failed to delete the blog",
-      });
-    }
-  });
-
-  const handleDeleteBlog = (blogId: string) => {
-    setBlogToDelete(blogId);
-    setDeleteDialogOpen(true);
-  };
-
-  const confirmDeleteBlog = () => {
-    if (blogToDelete) {
-      deleteBlogMutation.mutate(blogToDelete);
-    }
-  };
-
-  useEffect(() => {
-    if (profile) {
-      setEditedProfile({
-        username: profile.username || '',
-        bio: profile.bio || '',
-        expertise: profile.expertise || [],
-        social_links: profile.social_links || {}
-      });
-    }
-  }, [profile]);
-
-  const isOwnProfile = !userId || userId === user?.id;
-
-  const handleSaveProfile = async () => {
-    if (!editedProfile) return;
-    
-    await updateProfile(editedProfile);
-    setIsEditing(false);
-    refetch();
-  };
-
-  const addExpertise = (expertise: string) => {
-    if (!editedProfile.expertise?.includes(expertise)) {
-      setEditedProfile({
-        ...editedProfile,
-        expertise: [...(editedProfile.expertise || []), expertise]
-      });
-    }
-  };
-
-  const removeExpertise = (expertise: string) => {
-    setEditedProfile({
-      ...editedProfile,
-      expertise: editedProfile.expertise?.filter(e => e !== expertise) || []
-    });
-  };
-
-  const updateSocialLink = (platform: string, url: string) => {
-    setEditedProfile({
-      ...editedProfile,
-      social_links: {
-        ...(editedProfile.social_links || {}),
-        [platform]: url
+      try {
+        const response = await fetch(`https://gwgnnfbtvndiaaprbuvd.supabase.co/rest/v1/profiles?id=eq.${userId}`, {
+          headers: {
+            'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd3Z25uZmJ0dm5kaWFhcHJidXZkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQxODA2MjksImV4cCI6MjA1OTc1NjYyOX0.F36UShWvwxPBZNPlw9qI9IjQ93ju_rRneSm64MgKGls',
+            'Content-Type': 'application/json',
+          },
+        });
+        const data = await response.json();
+        return data[0];
+      } catch (error) {
+        throw new Error('Failed to fetch profile');
       }
-    });
-  };
+    },
+    enabled: !!userId,
+  });
 
-  if (isLoadingProfile) {
+  // Query user blogs
+  const {
+    data: blogs,
+    isLoading: isBlogsLoading,
+  } = useQuery({
+    queryKey: ['userBlogs', userId],
+    queryFn: () => getBlogsByUser(userId!),
+    enabled: !!userId,
+  });
+
+  // Query followers
+  const {
+    data: followers,
+    isLoading: isFollowersLoading,
+  } = useQuery({
+    queryKey: ['followers', userId],
+    queryFn: () => getFollowers(userId!),
+    enabled: !!userId,
+  });
+
+  // Query following
+  const {
+    data: following,
+    isLoading: isFollowingLoading,
+  } = useQuery({
+    queryKey: ['following', userId],
+    queryFn: () => getFollowing(userId!),
+    enabled: !!userId,
+  });
+
+  if (isProfileLoading) {
     return (
-      <div className="container max-w-6xl mx-auto py-10">
-        <div className="flex flex-col items-center gap-4">
-          <div className="h-24 w-24 rounded-full bg-muted animate-pulse" />
-          <div className="h-8 w-48 bg-muted animate-pulse" />
-          <div className="h-4 w-72 bg-muted animate-pulse" />
+      <div className="container py-12 px-4 max-w-7xl mx-auto">
+        <div className="animate-pulse space-y-8">
+          <div className="flex items-center space-x-4">
+            <div className="rounded-full bg-muted h-20 w-20"></div>
+            <div className="space-y-3 flex-1">
+              <div className="h-4 bg-muted rounded w-1/4"></div>
+              <div className="h-3 bg-muted rounded w-2/4"></div>
+            </div>
+          </div>
+          <div className="h-32 bg-muted rounded"></div>
+          <div className="grid grid-cols-3 gap-4">
+            {[1, 2, 3, 4, 5, 6].map((i) => (
+              <div key={i} className="col-span-1 h-60 bg-muted rounded"></div>
+            ))}
+          </div>
         </div>
       </div>
     );
   }
 
-  if (!profile) {
+  if (profileError || !profile) {
     return (
-      <div className="container max-w-6xl mx-auto py-10">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold">Profile not found</h1>
-          <p className="text-muted-foreground mt-2">
-            The user profile you're looking for doesn't exist or you don't have permission to view it.
-          </p>
-        </div>
+      <div className="container py-12 px-4 text-center">
+        <User className="mx-auto h-16 w-16 text-muted-foreground" />
+        <h1 className="text-2xl font-bold mt-4">User Not Found</h1>
+        <p className="text-muted-foreground mb-6">The user profile you're looking for doesn't exist.</p>
+        <Button onClick={() => navigate('/blogs')}>Back to Blogs</Button>
       </div>
     );
   }
+
+  // Render follower card for followers/following lists
+  const renderFollowerCard = (follower: Follower) => (
+    <Card key={follower.id} className="overflow-hidden hover:shadow-md transition-shadow duration-200">
+      <CardContent className="p-4">
+        <Link to={`/profile/${follower.profile?.username === profile.username ? follower.following_id : follower.follower_id}`} className="flex items-center gap-3">
+          <Avatar className="h-10 w-10">
+            <AvatarImage src={follower.profile?.avatar_url} />
+            <AvatarFallback><User className="h-5 w-5" /></AvatarFallback>
+          </Avatar>
+          <div>
+            <p className="font-medium">{follower.profile?.username}</p>
+          </div>
+        </Link>
+      </CardContent>
+    </Card>
+  );
 
   return (
-    <div className="container max-w-6xl mx-auto py-10">
-      {/* Profile Header */}
-      <div className="flex flex-col md:flex-row gap-8 items-start">
-        <div className="flex-shrink-0">
-          <Avatar className="h-32 w-32 border-4 border-background shadow-lg">
-            <AvatarImage src={profile.avatar_url || ''} alt={profile.username || 'User'} />
-            <AvatarFallback className="text-4xl">
-              <User size={64} />
-            </AvatarFallback>
-          </Avatar>
+    <div className="container py-10 px-4 max-w-7xl mx-auto">
+      <div className="mb-10">
+        <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 justify-between mb-6">
+          <div className="flex flex-col sm:flex-row items-center gap-4">
+            <Avatar className="h-24 w-24">
+              <AvatarImage src={profile.avatar_url} />
+              <AvatarFallback className="text-2xl">
+                <User className="h-12 w-12" />
+              </AvatarFallback>
+            </Avatar>
+
+            <div className="text-center sm:text-left">
+              <h1 className="text-2xl font-heading font-bold">
+                {profile.username || 'Anonymous'}
+                {profile.verified && (
+                  <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-xs bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-100">
+                    Verified
+                  </span>
+                )}
+              </h1>
+              
+              <div className="flex flex-wrap items-center justify-center sm:justify-start gap-3 mt-2">
+                <div className="flex items-center text-muted-foreground text-sm">
+                  <Calendar className="h-4 w-4 mr-1" />
+                  <span>Joined {formatDistanceToNow(new Date(profile.created_at), { addSuffix: true })}</span>
+                </div>
+              </div>
+              
+              <div className="flex flex-wrap justify-center sm:justify-start items-center gap-4 mt-3">
+                <Link to={`/profile/${userId}/followers`} className="flex items-center gap-1 hover:text-primary transition-colors">
+                  <span className="font-medium">{followers?.length || 0}</span>
+                  <span className="text-muted-foreground">Followers</span>
+                </Link>
+                <Link to={`/profile/${userId}/following`} className="flex items-center gap-1 hover:text-primary transition-colors">
+                  <span className="font-medium">{following?.length || 0}</span>
+                  <span className="text-muted-foreground">Following</span>
+                </Link>
+                <div className="flex items-center gap-1">
+                  <span className="font-medium">{blogs?.length || 0}</span>
+                  <span className="text-muted-foreground">Posts</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div className="flex items-center gap-2">
+            {isOwnProfile ? (
+              <Button variant="outline" className="gap-2">
+                <Edit className="h-4 w-4" />
+                <span>Edit Profile</span>
+              </Button>
+            ) : (
+              <FollowButton userId={userId!} className="w-32" />
+            )}
+          </div>
         </div>
         
-        <div className="flex-grow space-y-4">
-          <div className="flex items-center gap-3">
-            <h1 className="text-3xl font-bold font-heading">
-              {profile.username || 'Anonymous'}
-            </h1>
-            {profile.verified && (
-              <Badge variant="default" className="bg-blue-600">
-                <Check className="h-3 w-3 mr-1" /> Verified
-              </Badge>
-            )}
+        {profile.bio && (
+          <div className="bg-muted/30 rounded-md p-4 mt-4 mb-6">
+            <p className="whitespace-pre-line">{profile.bio}</p>
           </div>
-          
-          <p className="text-muted-foreground">{profile.bio || 'No bio yet'}</p>
-          
-          <div className="flex flex-wrap gap-2 mt-2">
-            {profile.expertise?.map(tag => (
-              <Badge key={tag} variant="outline">{tag}</Badge>
+        )}
+        
+        {profile.expertise && profile.expertise.length > 0 && (
+          <div className="flex flex-wrap gap-2 mt-4">
+            {profile.expertise.map((skill: string) => (
+              <Badge key={skill} variant="secondary">{skill}</Badge>
             ))}
-            {(profile.expertise?.length === 0) && (
-              <span className="text-sm text-muted-foreground">No expertise areas added</span>
-            )}
           </div>
-
-          <div className="flex items-center gap-4 text-muted-foreground">
-            {profile.social_links?.twitter && (
-              <a href={profile.social_links.twitter} target="_blank" rel="noopener noreferrer" className="hover:text-primary">
-                <Twitter className="h-5 w-5" />
+        )}
+        
+        {profile.social_links && (
+          <div className="flex flex-wrap gap-4 mt-6">
+            {profile.social_links.website && (
+              <a href={profile.social_links.website} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary">
+                <LinkIcon className="h-5 w-5" />
               </a>
             )}
-            {profile.social_links?.github && (
-              <a href={profile.social_links.github} target="_blank" rel="noopener noreferrer" className="hover:text-primary">
+            {profile.social_links.github && (
+              <a href={profile.social_links.github} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary">
                 <Github className="h-5 w-5" />
               </a>
             )}
-            {profile.social_links?.linkedin && (
-              <a href={profile.social_links.linkedin} target="_blank" rel="noopener noreferrer" className="hover:text-primary">
+            {profile.social_links.twitter && (
+              <a href={profile.social_links.twitter} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary">
+                <Twitter className="h-5 w-5" />
+              </a>
+            )}
+            {profile.social_links.linkedin && (
+              <a href={profile.social_links.linkedin} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary">
                 <Linkedin className="h-5 w-5" />
               </a>
             )}
-            {profile.social_links?.website && (
-              <a href={profile.social_links.website} target="_blank" rel="noopener noreferrer" className="hover:text-primary">
-                <Globe className="h-5 w-5" />
-              </a>
-            )}
           </div>
+        )}
+      </div>
 
-          <div className="flex gap-6 mt-4">
-            <div className="text-center">
-              <div className="text-2xl font-bold">{profile.stats?.posts || 0}</div>
-              <div className="text-sm text-muted-foreground">Blogs</div>
-            </div>
-            <Separator orientation="vertical" className="h-12" />
-            <div className="text-center">
-              <div className="text-2xl font-bold">{profile.stats?.followers || 0}</div>
-              <div className="text-sm text-muted-foreground">Followers</div>
-            </div>
-            <Separator orientation="vertical" className="h-12" />
-            <div className="text-center">
-              <div className="text-2xl font-bold">{profile.stats?.following || 0}</div>
-              <div className="text-sm text-muted-foreground">Following</div>
-            </div>
-          </div>
-
-          {isOwnProfile && (
-            <div className="mt-4">
-              <Button variant="outline" onClick={() => setIsEditing(true)}>
-                <Edit className="h-4 w-4 mr-2" /> Edit Profile
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <div className="flex justify-between items-center">
+          <TabsList>
+            <TabsTrigger value="blogs">
+              <span className="flex items-center gap-2">
+                Blogs
+              </span>
+            </TabsTrigger>
+            <TabsTrigger value="followers">
+              <span className="flex items-center gap-2">
+                Followers
+              </span>
+            </TabsTrigger>
+            <TabsTrigger value="following">
+              <span className="flex items-center gap-2">
+                Following
+              </span>
+            </TabsTrigger>
+          </TabsList>
+          
+          {activeTab === 'blogs' && (
+            <div className="flex items-center border rounded-md">
+              <Button
+                variant={viewMode === 'grid' ? 'ghost' : 'ghost'}
+                size="sm"
+                className={`rounded-none ${viewMode === 'grid' ? 'bg-muted' : ''}`}
+                onClick={() => setViewMode('grid')}
+              >
+                <Grid className="h-4 w-4" />
+              </Button>
+              <Button
+                variant={viewMode === 'list' ? 'ghost' : 'ghost'}
+                size="sm"
+                className={`rounded-none ${viewMode === 'list' ? 'bg-muted' : ''}`}
+                onClick={() => setViewMode('list')}
+              >
+                <ListFilter className="h-4 w-4" />
               </Button>
             </div>
           )}
         </div>
-      </div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-10">
-        <TabsList className="grid w-full md:w-auto grid-cols-2 md:flex">
-          <TabsTrigger value="blogs">Blogs</TabsTrigger>
-          <TabsTrigger value="about">About</TabsTrigger>
-        </TabsList>
-        
         <TabsContent value="blogs" className="mt-6">
-          {isLoadingBlogs ? (
+          {isBlogsLoading ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {[1, 2, 3].map(i => (
+              {[1, 2, 3].map((i) => (
                 <Card key={i} className="animate-pulse">
                   <div className="aspect-video w-full bg-muted"></div>
                   <CardContent className="p-4">
-                    <div className="h-4 bg-muted rounded w-3/4 mb-2"></div>
-                    <div className="h-3 bg-muted rounded w-1/2"></div>
+                    <div className="h-4 bg-muted rounded-md w-3/4 mb-2"></div>
+                    <div className="h-3 bg-muted rounded-md w-full mb-1"></div>
+                    <div className="h-3 bg-muted rounded-md w-5/6"></div>
                   </CardContent>
                 </Card>
               ))}
             </div>
           ) : blogs && blogs.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {blogs.map(blog => (
-                <div key={blog.id} className="relative">
-                  <BlogCard blog={blog} />
-                  {isOwnProfile && (
-                    <Button 
-                      variant="destructive" 
-                      size="icon"
-                      className="absolute top-2 right-2 z-10 rounded-full opacity-80 hover:opacity-100"
-                      onClick={() => handleDeleteBlog(blog.id)}
-                    >
-                      <Trash2 size={16} />
-                    </Button>
-                  )}
-                </div>
+            <div className={viewMode === 'grid' 
+              ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" 
+              : "space-y-6"
+            }>
+              {blogs.map((blog) => (
+                <BlogCard key={blog.id} blog={blog} />
               ))}
             </div>
           ) : (
-            <Card className="bg-muted/30">
-              <CardContent className="flex flex-col items-center justify-center py-12">
-                <p className="text-lg font-medium">No blogs published yet</p>
-                <p className="text-muted-foreground mt-1">
-                  {isOwnProfile ? "You haven't published any blogs yet." : "This user hasn't published any blogs yet."}
-                </p>
-                {isOwnProfile && (
-                  <Button className="mt-4" variant="default" onClick={() => navigate('/blogs')}>Create your first blog</Button>
-                )}
-              </CardContent>
-            </Card>
+            <div className="text-center py-12">
+              <div className="inline-block p-4 rounded-full bg-muted mb-4">
+                <Users className="h-12 w-12 text-muted-foreground" />
+              </div>
+              <h3 className="text-xl font-medium mb-2">No blogs yet</h3>
+              <p className="text-muted-foreground">
+                {isOwnProfile 
+                  ? "You haven't published any blogs yet. Create your first blog post!"
+                  : `${profile.username || 'This user'} hasn't published any blogs yet.`}
+              </p>
+              {isOwnProfile && (
+                <Button className="mt-4" onClick={() => navigate('/blogs')}>
+                  Create A Blog
+                </Button>
+              )}
+            </div>
           )}
         </TabsContent>
-        
-        <TabsContent value="about" className="mt-6">
-          <Card>
-            <CardContent className="p-6">
-              <div className="space-y-6">
-                <div>
-                  <h3 className="text-lg font-medium">Bio</h3>
-                  <p className="mt-2 text-muted-foreground">
-                    {profile.bio || 'No bio available'}
-                  </p>
-                </div>
-                
-                <div>
-                  <h3 className="text-lg font-medium">Areas of Expertise</h3>
-                  <div className="flex flex-wrap gap-2 mt-2">
-                    {profile.expertise?.map(tag => (
-                      <Badge key={tag} variant="outline">{tag}</Badge>
-                    ))}
-                    {(profile.expertise?.length === 0) && (
-                      <span className="text-muted-foreground">No expertise areas listed</span>
-                    )}
-                  </div>
-                </div>
-                
-                <div>
-                  <h3 className="text-lg font-medium">Member Since</h3>
-                  <p className="mt-2 text-muted-foreground">
-                    {new Date(profile.created_at).toLocaleDateString()}
-                  </p>
-                </div>
+
+        <TabsContent value="followers" className="mt-6">
+          {isFollowersLoading ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {[1, 2, 3].map((i) => (
+                <Card key={i} className="animate-pulse">
+                  <CardContent className="p-4 flex items-center gap-3">
+                    <div className="rounded-full bg-muted h-10 w-10"></div>
+                    <div className="h-4 bg-muted rounded-md w-24"></div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : followers && followers.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {followers.map((follower) => renderFollowerCard(follower))}
+            </div>
+          ) : (
+            <div className="text-center py-12">
+              <div className="inline-block p-4 rounded-full bg-muted mb-4">
+                <Users className="h-12 w-12 text-muted-foreground" />
               </div>
-            </CardContent>
-          </Card>
+              <h3 className="text-xl font-medium mb-2">No followers yet</h3>
+              <p className="text-muted-foreground">
+                {isOwnProfile 
+                  ? "You don't have any followers yet. Share your profile to get discovered!"
+                  : `${profile.username || 'This user'} doesn't have any followers yet.`}
+              </p>
+            </div>
+          )}
+        </TabsContent>
+
+        <TabsContent value="following" className="mt-6">
+          {isFollowingLoading ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {[1, 2, 3].map((i) => (
+                <Card key={i} className="animate-pulse">
+                  <CardContent className="p-4 flex items-center gap-3">
+                    <div className="rounded-full bg-muted h-10 w-10"></div>
+                    <div className="h-4 bg-muted rounded-md w-24"></div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : following && following.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {following.map((follow) => renderFollowerCard(follow))}
+            </div>
+          ) : (
+            <div className="text-center py-12">
+              <div className="inline-block p-4 rounded-full bg-muted mb-4">
+                <Users className="h-12 w-12 text-muted-foreground" />
+              </div>
+              <h3 className="text-xl font-medium mb-2">Not following anyone yet</h3>
+              <p className="text-muted-foreground">
+                {isOwnProfile 
+                  ? "You aren't following anyone yet. Find interesting writers to follow!"
+                  : `${profile.username || 'This user'} isn't following anyone yet.`}
+              </p>
+              {isOwnProfile && (
+                <Button className="mt-4" onClick={() => navigate('/blogs')}>
+                  Discover Writers
+                </Button>
+              )}
+            </div>
+          )}
         </TabsContent>
       </Tabs>
-
-      {/* Edit Profile Dialog */}
-      <Dialog open={isEditing} onOpenChange={setIsEditing}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Edit Profile</DialogTitle>
-          </DialogHeader>
-          
-          <div className="grid gap-4 py-4">
-            <div className="grid gap-2">
-              <label htmlFor="username" className="text-sm font-medium">
-                Username
-              </label>
-              <Input
-                id="username"
-                value={editedProfile.username || ''}
-                onChange={(e) => setEditedProfile({...editedProfile, username: e.target.value})}
-                className="col-span-3"
-              />
-            </div>
-            
-            <div className="grid gap-2">
-              <label htmlFor="bio" className="text-sm font-medium">
-                Bio
-              </label>
-              <Textarea
-                id="bio"
-                value={editedProfile.bio || ''}
-                onChange={(e) => setEditedProfile({...editedProfile, bio: e.target.value})}
-                className="col-span-3 min-h-[100px]"
-              />
-            </div>
-            
-            <div className="grid gap-2">
-              <label className="text-sm font-medium">
-                Areas of Expertise
-              </label>
-              <div className="flex flex-wrap gap-2">
-                {editedProfile.expertise?.map(item => (
-                  <Badge key={item} variant="secondary" className="flex items-center gap-1">
-                    {item}
-                    <button onClick={() => removeExpertise(item)} className="ml-1 hover:text-destructive">
-                      <X className="h-3 w-3" />
-                    </button>
-                  </Badge>
-                ))}
-              </div>
-              
-              <div className="flex gap-2 mt-1">
-                <Input 
-                  id="new-expertise"
-                  placeholder="Add expertise (e.g. React, TypeScript)"
-                  className="flex-1"
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' && e.currentTarget.value) {
-                      e.preventDefault();
-                      addExpertise(e.currentTarget.value);
-                      e.currentTarget.value = '';
-                    }
-                  }}
-                />
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    const input = document.getElementById('new-expertise') as HTMLInputElement;
-                    if (input.value) {
-                      addExpertise(input.value);
-                      input.value = '';
-                    }
-                  }}
-                >
-                  Add
-                </Button>
-              </div>
-            </div>
-            
-            <div className="grid gap-2">
-              <label className="text-sm font-medium">
-                Social Links
-              </label>
-              <div className="grid gap-3">
-                <div className="flex items-center gap-2">
-                  <Twitter className="h-4 w-4" />
-                  <Input
-                    placeholder="Twitter URL"
-                    value={editedProfile.social_links?.twitter || ''}
-                    onChange={(e) => updateSocialLink('twitter', e.target.value)}
-                  />
-                </div>
-                <div className="flex items-center gap-2">
-                  <Github className="h-4 w-4" />
-                  <Input
-                    placeholder="GitHub URL"
-                    value={editedProfile.social_links?.github || ''}
-                    onChange={(e) => updateSocialLink('github', e.target.value)}
-                  />
-                </div>
-                <div className="flex items-center gap-2">
-                  <Linkedin className="h-4 w-4" />
-                  <Input
-                    placeholder="LinkedIn URL"
-                    value={editedProfile.social_links?.linkedin || ''}
-                    onChange={(e) => updateSocialLink('linkedin', e.target.value)}
-                  />
-                </div>
-                <div className="flex items-center gap-2">
-                  <Globe className="h-4 w-4" />
-                  <Input
-                    placeholder="Website URL"
-                    value={editedProfile.social_links?.website || ''}
-                    onChange={(e) => updateSocialLink('website', e.target.value)}
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          <DialogFooter>
-            <DialogClose asChild>
-              <Button variant="outline">Cancel</Button>
-            </DialogClose>
-            <Button type="button" onClick={handleSaveProfile}>
-              Save Changes
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Delete Blog Confirmation Dialog */}
-      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete your blog post and remove it from our servers.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction 
-              onClick={confirmDeleteBlog}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              {deleteBlogMutation.isPending ? "Deleting..." : "Delete"}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   );
 };
 
-export default UserProfilePage;
+export default UserProfile;

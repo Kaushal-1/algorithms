@@ -1,8 +1,8 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getBlogs, createBlog } from '@/services/blogService';
-import { Plus, Search, Rss } from 'lucide-react';
+import { getBlogs, createBlog, getPersonalizedFeed, searchBlogs } from '@/services/blogService';
+import { Plus, Search, Rss, TrendingUp, Filter } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardFooter, CardContent } from '@/components/ui/card';
 import BlogCard from '@/components/BlogCard';
@@ -11,22 +11,68 @@ import { useAuth } from '@/contexts/AuthContext';
 import { NewBlog } from '@/types/Blog';
 import { Link } from 'react-router-dom';
 import { Input } from '@/components/ui/input';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useDebounce } from '@/hooks/useDebounce';
 
 const Blogs: React.FC = () => {
   const [isCreateBlogOpen, setIsCreateBlogOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [activeTab, setActiveTab] = useState<'all' | 'following'>('all');
+  const debouncedSearchTerm = useDebounce(searchTerm, 300);
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
-  // Fetch blogs
+  // Fetch all blogs
   const { 
-    data: blogs, 
-    isLoading, 
-    error 
+    data: allBlogs, 
+    isLoading: isAllBlogsLoading, 
+    error: allBlogsError 
   } = useQuery({
     queryKey: ['blogs'],
     queryFn: getBlogs,
   });
+  
+  // Fetch personalized feed
+  const {
+    data: followingBlogs,
+    isLoading: isFollowingBlogsLoading,
+    error: followingBlogsError
+  } = useQuery({
+    queryKey: ['blogs', 'following'],
+    queryFn: getPersonalizedFeed,
+    enabled: !!user, // Only fetch if user is logged in
+  });
+  
+  // Search blogs
+  const {
+    data: searchResults,
+    isLoading: isSearchLoading,
+    error: searchError,
+    refetch: refetchSearch
+  } = useQuery({
+    queryKey: ['blogs', 'search', debouncedSearchTerm],
+    queryFn: () => searchBlogs(debouncedSearchTerm),
+    enabled: debouncedSearchTerm.length > 0,
+  });
+
+  // Get displayed blogs based on tab and search
+  const displayedBlogs = debouncedSearchTerm 
+    ? searchResults
+    : activeTab === 'following' && user 
+      ? followingBlogs
+      : allBlogs;
+
+  const isLoading = debouncedSearchTerm 
+    ? isSearchLoading
+    : activeTab === 'following' && user 
+      ? isFollowingBlogsLoading 
+      : isAllBlogsLoading;
+  
+  const error = debouncedSearchTerm 
+    ? searchError
+    : activeTab === 'following' && user 
+      ? followingBlogsError 
+      : allBlogsError;
 
   // Create new blog mutation
   const createBlogMutation = useMutation({
@@ -34,18 +80,15 @@ const Blogs: React.FC = () => {
     onSuccess: () => {
       // Invalidate and refetch blogs after creating a new one
       queryClient.invalidateQueries({ queryKey: ['blogs'] });
+      if (user) {
+        queryClient.invalidateQueries({ queryKey: ['blogs', 'following'] });
+      }
     },
   });
 
   const handleCreateBlog = async (blog: NewBlog) => {
     await createBlogMutation.mutateAsync(blog);
   };
-
-  // Filter blogs based on search term
-  const filteredBlogs = blogs?.filter(blog => 
-    blog.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    blog.content.toLowerCase().includes(searchTerm.toLowerCase())
-  );
 
   // Sample blogs for demonstration (when there are no blogs or while loading)
   const demoBlogs = [
@@ -90,7 +133,8 @@ const Blogs: React.FC = () => {
     }
   ];
 
-  const displayedBlogs = filteredBlogs && filteredBlogs.length > 0 ? filteredBlogs : demoBlogs;
+  // If we have search results, following blogs, or all blogs, use them, otherwise use demo blogs
+  const blogsToDisplay = displayedBlogs && displayedBlogs.length > 0 ? displayedBlogs : demoBlogs;
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-7xl">
@@ -117,16 +161,29 @@ const Blogs: React.FC = () => {
         </div>
       </div>
       
-      <div className="mb-8">
-        <div className="relative">
+      <div className="flex flex-col sm:flex-row gap-4 mb-6 items-start sm:items-center">
+        <div className="relative flex-grow max-w-md">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Search blogs..."
-            className="pl-10 max-w-md"
+            className="pl-10"
           />
         </div>
+        
+        {user && (
+          <Tabs 
+            value={activeTab} 
+            onValueChange={(value) => setActiveTab(value as 'all' | 'following')}
+            className="self-start"
+          >
+            <TabsList>
+              <TabsTrigger value="all">All Posts</TabsTrigger>
+              <TabsTrigger value="following">Following</TabsTrigger>
+            </TabsList>
+          </Tabs>
+        )}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -169,16 +226,23 @@ const Blogs: React.FC = () => {
             )}
           </div>
         ) : (
-          displayedBlogs.map((blog) => (
+          blogsToDisplay.map((blog) => (
             <BlogCard key={blog.id} blog={blog} />
           ))
         )}
       </div>
 
-      {filteredBlogs && filteredBlogs.length === 0 && searchTerm && (
+      {displayedBlogs && displayedBlogs.length === 0 && debouncedSearchTerm && (
         <div className="text-center py-12">
-          <p className="text-lg">No blogs matching "{searchTerm}"</p>
+          <p className="text-lg">No blogs matching "{debouncedSearchTerm}"</p>
           <p className="text-muted-foreground mt-2">Try a different search term or create a new blog.</p>
+        </div>
+      )}
+
+      {displayedBlogs && displayedBlogs.length === 0 && !debouncedSearchTerm && activeTab === 'following' && (
+        <div className="text-center py-12">
+          <p className="text-lg">No posts from people you follow</p>
+          <p className="text-muted-foreground mt-2">Follow more writers to see their content here</p>
         </div>
       )}
 
