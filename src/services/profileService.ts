@@ -30,7 +30,7 @@ export async function getProfileById(userId: string): Promise<UserProfile | null
     return {
       ...data,
       expertise: data.expertise || [],
-      social_links: data.social_links || {},
+      social_links: data.social_links ? (data.social_links as Record<string, string>) : {},
       verified: data.verified ?? false,
       stats: {
         posts: postsCount || 0,
@@ -88,7 +88,7 @@ export async function updateProfile(
     return {
       ...data,
       expertise: data.expertise || [],
-      social_links: data.social_links || {},
+      social_links: data.social_links ? (data.social_links as Record<string, string>) : {},
       verified: data.verified ?? false,
       stats: {
         posts: 0,
@@ -118,14 +118,14 @@ export async function getProfilesByExpertise(expertise: string): Promise<UserPro
     return data.map(profile => ({
       ...profile,
       expertise: profile.expertise || [],
-      social_links: profile.social_links || {},
+      social_links: profile.social_links ? (profile.social_links as Record<string, string>) : {},
       verified: profile.verified ?? false,
       stats: {
         posts: 0,
         followers: 0, 
         following: 0
       }
-    })) || [];
+    }));
   } catch (error) {
     console.error("Error in getProfilesByExpertise:", error);
     return [];
