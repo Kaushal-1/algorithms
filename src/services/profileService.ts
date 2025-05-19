@@ -85,7 +85,18 @@ export async function updateProfile(
       description: "Your profile has been successfully updated",
     });
 
-    return data;
+    // Make sure we return a complete UserProfile object with all required fields
+    return {
+      ...data,
+      expertise: data.expertise || [],
+      social_links: data.social_links || {},
+      verified: data.verified || false,
+      stats: {
+        posts: 0,
+        followers: 0,
+        following: 0
+      }
+    };
   } catch (error) {
     console.error("Error updating profile:", error);
     return null;
@@ -104,7 +115,18 @@ export async function getProfilesByExpertise(expertise: string): Promise<UserPro
       return [];
     }
 
-    return data || [];
+    // Make sure we return complete UserProfile objects
+    return data.map(profile => ({
+      ...profile,
+      expertise: profile.expertise || [],
+      social_links: profile.social_links || {},
+      verified: profile.verified || false,
+      stats: {
+        posts: 0,
+        followers: 0, 
+        following: 0
+      }
+    })) || [];
   } catch (error) {
     console.error("Error in getProfilesByExpertise:", error);
     return [];

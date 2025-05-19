@@ -137,7 +137,7 @@ const AppSidebar = () => {
           {user ? (
             <Link to="/profile" className="rounded-md bg-muted/30 p-3 flex items-center gap-3 hover:bg-muted/50 transition-colors">
               <Avatar className="h-9 w-9">
-                <AvatarImage src={user.avatar_url || undefined} alt={user.email || "User"} />
+                <AvatarImage src={user.user_metadata?.avatar_url || undefined} alt={user.email || "User"} />
                 <AvatarFallback>{user.email?.charAt(0).toUpperCase() || "U"}</AvatarFallback>
               </Avatar>
               <div className="flex-1 min-w-0">
