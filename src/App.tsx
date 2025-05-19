@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -36,7 +35,7 @@ const queryClient = new QueryClient();
 // Layout component to wrap authenticated routes
 const AppLayout = ({ children }: { children: React.ReactNode }) => {
   return (
-    <SidebarProvider defaultOpen={true} defaultCollapsed={false}>
+    <SidebarProvider defaultOpen={true}>
       <div className="min-h-screen flex w-full">
         <AppSidebar />
         <div className="flex-1 pt-16">

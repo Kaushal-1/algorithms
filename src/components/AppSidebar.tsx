@@ -28,7 +28,7 @@ import { Button } from "@/components/ui/button";
 // Define the type for our navigation items
 type NavItem = {
   title: string;
-  icon: React.ElementType | React.FC | (() => JSX.Element);
+  icon: React.ElementType;
   path: string;
 };
 
@@ -48,12 +48,7 @@ const AppSidebar = () => {
     },
     {
       title: "AI Guru",
-      icon: () => (
-        <Avatar className="h-5 w-5">
-          <AvatarImage src="/ai-guru-avatar.png" alt="AI Guru" />
-          <AvatarFallback>AI</AvatarFallback>
-        </Avatar>
-      ),
+      icon: Avatar,
       path: "/personalized-learning",
     },
     {
@@ -87,6 +82,7 @@ const AppSidebar = () => {
             <SidebarMenu>
               {mainNavItems.map((item) => {
                 const isActive = location.pathname === item.path;
+                const Icon = item.icon;
                 
                 return (
                   <SidebarMenuItem key={item.title}>
@@ -96,9 +92,14 @@ const AppSidebar = () => {
                       tooltip={item.title}
                     >
                       <Link to={item.path}>
-                        {typeof item.icon === 'function' 
-                          ? item.icon()
-                          : <item.icon className="h-5 w-5" />}
+                        {item.title === "AI Guru" ? (
+                          <Avatar className="h-5 w-5">
+                            <AvatarImage src="/ai-guru-avatar.png" alt="AI Guru" />
+                            <AvatarFallback>AI</AvatarFallback>
+                          </Avatar>
+                        ) : (
+                          <Icon className="h-5 w-5" />
+                        )}
                         <span>{item.title}</span>
                       </Link>
                     </SidebarMenuButton>

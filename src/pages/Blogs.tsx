@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getBlogs, createBlog } from '@/services/blogService';
 import { Plus, Search, Rss } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Card, CardHeader, CardFooter, CardContent } from '@/components/ui/card';
 import BlogCard from '@/components/BlogCard';
 import CreateBlogForm from '@/components/CreateBlogForm';
 import { useAuth } from '@/contexts/AuthContext';
