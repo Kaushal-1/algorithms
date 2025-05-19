@@ -6,6 +6,7 @@ export interface Blog {
   user_id: string;
   created_at: string;
   updated_at: string;
+  cover_image?: string;
 }
 
 export interface BlogWithAuthor extends Blog {
@@ -18,4 +19,5 @@ export interface BlogWithAuthor extends Blog {
 export interface NewBlog {
   title: string;
   content: string;
+  cover_image?: string;
 }

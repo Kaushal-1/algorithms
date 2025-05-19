@@ -26,7 +26,7 @@ import Community from "./pages/Community";
 import PersonalizedLearning from "./pages/PersonalizedLearning";
 import LearningSession from "./pages/LearningSession";
 import AICodeReview from "./pages/AICodeReview";
-import Blogs from "./pages/Blogs"; // Import the new Blogs page
+import Blogs from "./pages/Blogs"; 
 import { SidebarProvider } from "./components/ui/sidebar";
 import AppSidebar from "./components/AppSidebar";
 
@@ -36,7 +36,7 @@ const queryClient = new QueryClient();
 // Layout component to wrap authenticated routes
 const AppLayout = ({ children }: { children: React.ReactNode }) => {
   return (
-    <SidebarProvider defaultOpen={true}>
+    <SidebarProvider defaultOpen={true} defaultCollapsed={false}>
       <div className="min-h-screen flex w-full">
         <AppSidebar />
         <div className="flex-1 pt-16">
