@@ -9,7 +9,8 @@ import {
   Users, 
   BookOpen,
   ChevronRight,
-  FileText
+  FileText,
+  User
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { 
@@ -24,6 +25,7 @@ import {
   SidebarMenuButton
 } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/contexts/AuthContext";
 
 // Define the type for our navigation items
 type NavItem = {
@@ -34,6 +36,7 @@ type NavItem = {
 
 const AppSidebar = () => {
   const location = useLocation();
+  const { user } = useAuth();
   
   const mainNavItems: NavItem[] = [
     {
@@ -70,6 +73,11 @@ const AppSidebar = () => {
       title: "Community",
       icon: Users,
       path: "/community",
+    },
+    {
+      title: "Profile",
+      icon: User,
+      path: "/profile",
     },
   ];
   
@@ -126,11 +134,24 @@ const AppSidebar = () => {
       
       <SidebarFooter>
         <div className="p-2">
-          <div className="rounded-md bg-muted/30 p-3">
-            <h4 className="font-medium text-sm mb-1">Upgrade to Pro</h4>
-            <p className="text-xs text-muted-foreground mb-2">Get unlimited access to all features</p>
-            <Button size="sm" className="w-full">Upgrade now</Button>
-          </div>
+          {user ? (
+            <Link to="/profile" className="rounded-md bg-muted/30 p-3 flex items-center gap-3 hover:bg-muted/50 transition-colors">
+              <Avatar className="h-9 w-9">
+                <AvatarImage src={user.avatar_url || undefined} alt={user.email || "User"} />
+                <AvatarFallback>{user.email?.charAt(0).toUpperCase() || "U"}</AvatarFallback>
+              </Avatar>
+              <div className="flex-1 min-w-0">
+                <p className="font-medium text-sm truncate">{user.email}</p>
+                <p className="text-xs text-muted-foreground">View profile</p>
+              </div>
+            </Link>
+          ) : (
+            <div className="rounded-md bg-muted/30 p-3">
+              <h4 className="font-medium text-sm mb-1">Upgrade to Pro</h4>
+              <p className="text-xs text-muted-foreground mb-2">Get unlimited access to all features</p>
+              <Button size="sm" className="w-full">Upgrade now</Button>
+            </div>
+          )}
         </div>
       </SidebarFooter>
     </Sidebar>

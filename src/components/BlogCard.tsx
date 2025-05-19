@@ -49,13 +49,13 @@ const BlogCard: React.FC<BlogCardProps> = ({ blog }) => {
       </CardContent>
       
       <CardFooter className="p-4 pt-2 border-t border-border/20 flex items-center justify-between">
-        <div className="flex items-center space-x-2">
-          <Avatar className="h-6 w-6">
+        <Link to={`/profile/${blog.user_id}`} className="flex items-center space-x-2 group">
+          <Avatar className="h-6 w-6 transition-transform group-hover:scale-110">
             <AvatarImage src={blog.author.avatar_url} />
             <AvatarFallback><User size={16} /></AvatarFallback>
           </Avatar>
-          <span className="text-xs text-muted-foreground">{blog.author.username}</span>
-        </div>
+          <span className="text-xs text-muted-foreground group-hover:text-primary transition-colors">{blog.author.username}</span>
+        </Link>
         
         <div className="flex items-center space-x-4 text-xs text-muted-foreground">
           <div className="flex items-center">

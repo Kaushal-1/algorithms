@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -25,7 +26,7 @@ import Community from "./pages/Community";
 import PersonalizedLearning from "./pages/PersonalizedLearning";
 import LearningSession from "./pages/LearningSession";
 import AICodeReview from "./pages/AICodeReview";
-import Blogs from "./pages/Blogs"; 
+import Blogs from "./pages/Blogs";
 import { SidebarProvider } from "./components/ui/sidebar";
 import AppSidebar from "./components/AppSidebar";
 
@@ -73,6 +74,10 @@ const App = () => {
                     
                     {/* Blogs route */}
                     <Route path="/blogs" element={<AppLayout><Blogs /></AppLayout>} />
+                    
+                    {/* User Profile Routes */}
+                    <Route path="/profile" element={<AppLayout><UserProfile /></AppLayout>} />
+                    <Route path="/profile/:userId" element={<AppLayout><UserProfile /></AppLayout>} />
                     
                     {/* AI Code Review route */}
                     <Route path="/ai-code-review" element={<AppLayout><AICodeReview /></AppLayout>} />

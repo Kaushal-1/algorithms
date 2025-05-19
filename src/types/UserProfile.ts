@@ -1,23 +1,25 @@
 
-export type UserType = 'school_student' | 'college_student' | 'working_professional' | 'other';
-
-export type ExperienceLevel = 'beginner' | 'intermediate' | 'expert';
-
-export interface KnownTopic {
+export interface UserProfile {
   id: string;
-  name: string;
-  selected: boolean;
+  username: string | null;
+  avatar_url: string | null;
+  bio: string | null;
+  created_at: string;
+  updated_at: string;
+  verified: boolean;
+  expertise: string[];
+  social_links?: Record<string, string>;
+  stats?: {
+    posts: number;
+    followers: number;
+    following: number;
+  };
 }
 
-export interface UserLearningProfile {
-  id?: string;
-  userType: UserType;
-  customUserType?: string;
-  topic: string;
-  experienceLevel: ExperienceLevel;
-  knownTopics?: KnownTopic[];
-  roadmapId?: string;
-  syllabusId?: string;
-  createdAt?: Date;
-  updatedAt?: Date;
+export interface UpdateProfileRequest {
+  username?: string;
+  bio?: string;
+  avatar_url?: string;
+  expertise?: string[];
+  social_links?: Record<string, string>;
 }
