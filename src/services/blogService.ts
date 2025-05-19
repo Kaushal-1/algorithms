@@ -294,8 +294,8 @@ export async function searchBlogs(query: string): Promise<BlogWithAuthor[]> {
 
 export async function incrementBlogViews(blogId: string): Promise<void> {
   try {
-    // Use type assertion to handle TypeScript error with RPC function name
-    const { error } = await supabase.rpc('increment_blog_view', { blog_id: blogId });
+    // Use type assertion with unknown as an intermediate step for safer casting
+    const { error } = await (supabase.rpc as any)('increment_blog_view', { blog_id: blogId });
     
     if (error) {
       // If the RPC doesn't exist, fall back to a direct update
