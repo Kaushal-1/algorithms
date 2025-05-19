@@ -26,13 +26,12 @@ export async function getProfileById(userId: string): Promise<UserProfile | null
       console.error("Error getting post count:", countError);
     }
 
-    // For demonstration, we'll set placeholder values for followers/following
-    // In a real app, these would come from a followers table
+    // Ensure we return a properly typed UserProfile with default values for missing fields
     return {
       ...data,
       expertise: data.expertise || [],
       social_links: data.social_links || {},
-      verified: data.verified || false,
+      verified: data.verified ?? false,
       stats: {
         posts: postsCount || 0,
         followers: 0,
@@ -85,12 +84,12 @@ export async function updateProfile(
       description: "Your profile has been successfully updated",
     });
 
-    // Make sure we return a complete UserProfile object with all required fields
+    // Ensure we return a properly typed UserProfile with default values for missing fields
     return {
       ...data,
       expertise: data.expertise || [],
       social_links: data.social_links || {},
-      verified: data.verified || false,
+      verified: data.verified ?? false,
       stats: {
         posts: 0,
         followers: 0,
@@ -115,12 +114,12 @@ export async function getProfilesByExpertise(expertise: string): Promise<UserPro
       return [];
     }
 
-    // Make sure we return complete UserProfile objects
+    // Ensure we return properly typed UserProfile objects with default values for missing fields
     return data.map(profile => ({
       ...profile,
       expertise: profile.expertise || [],
       social_links: profile.social_links || {},
-      verified: profile.verified || false,
+      verified: profile.verified ?? false,
       stats: {
         posts: 0,
         followers: 0, 

@@ -132,25 +132,34 @@ export type Database = {
           avatar_url: string | null
           bio: string | null
           created_at: string
+          expertise: string[] | null
           id: string
+          social_links: Json | null
           updated_at: string
           username: string | null
+          verified: boolean | null
         }
         Insert: {
           avatar_url?: string | null
           bio?: string | null
           created_at?: string
+          expertise?: string[] | null
           id: string
+          social_links?: Json | null
           updated_at?: string
           username?: string | null
+          verified?: boolean | null
         }
         Update: {
           avatar_url?: string | null
           bio?: string | null
           created_at?: string
+          expertise?: string[] | null
           id?: string
+          social_links?: Json | null
           updated_at?: string
           username?: string | null
+          verified?: boolean | null
         }
         Relationships: []
       }
