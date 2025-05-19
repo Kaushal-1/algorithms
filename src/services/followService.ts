@@ -1,7 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { createNotification } from "@/services/notificationService"; // Add import
 
 export interface Follower {
   id: string;

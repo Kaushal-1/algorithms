@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
@@ -5,7 +6,6 @@ import { User, Calendar, MessageSquare, Heart } from "lucide-react";
 import { formatDistanceToNow } from 'date-fns';
 import { BlogWithAuthor } from '@/types/Blog';
 import { Link } from 'react-router-dom';
-import BlogTags from '@/components/BlogTags';
 
 interface BlogCardProps {
   blog: BlogWithAuthor;
@@ -47,7 +47,6 @@ const BlogCard: React.FC<BlogCardProps> = ({ blog }) => {
       </CardHeader>
       
       <CardContent className="p-4 pt-0">
-        <BlogTags content={blog.content} />
         <p className="text-muted-foreground text-sm line-clamp-3">{contentPreview}</p>
       </CardContent>
       

@@ -6,8 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 export async function setupRPCFunctions() {
   try {
     // Test if the RPC function exists by calling it
-    // Using .rpc() with specific casting to allow custom functions
-    await supabase.rpc('increment_blog_view' as any, { blog_id: '00000000-0000-0000-0000-000000000000' });
+    await supabase.rpc('increment_blog_view', { blog_id: '00000000-0000-0000-0000-000000000000' });
     console.log('RPC functions already set up');
   } catch (error) {
     // Function doesn't exist, we need to create it

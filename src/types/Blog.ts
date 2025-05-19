@@ -7,7 +7,6 @@ export interface Blog {
   created_at: string;
   updated_at: string;
   cover_image?: string;
-  view_count?: number; // Add view_count property
 }
 
 export interface BlogWithAuthor extends Blog {
