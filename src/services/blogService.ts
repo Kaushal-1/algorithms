@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { Blog, BlogWithAuthor, Comment, NewBlog, NewComment } from "@/types/Blog";
 
@@ -125,7 +124,7 @@ export async function deleteBlog(blogId: string): Promise<boolean> {
 
 export async function getComments(blogId: string): Promise<Comment[]> {
   try {
-    const { data: comments, error } = await supabase
+    const { data, error } = await supabase
       .from("blog_comments")
       .select("*")
       .eq("blog_id", blogId)
@@ -137,7 +136,7 @@ export async function getComments(blogId: string): Promise<Comment[]> {
 
     // Fetch author information for each comment
     const commentsWithAuthors = await Promise.all(
-      (comments as Comment[]).map(async (comment) => {
+      (data as Comment[]).map(async (comment) => {
         const { data: profile, error: profileError } = await supabase
           .from("profiles")
           .select("username, avatar_url")
