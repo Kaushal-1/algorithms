@@ -195,13 +195,16 @@ export async function getTrendingBlogs(): Promise<BlogWithAuthor[]> {
     }
 
     // Transform the data to match the BlogWithAuthor interface with safe type handling
-    return blogs.map(blog => ({
-      ...blog,
-      author: {
-        username: blog.profiles?.username || "Anonymous",
-        avatar_url: blog.profiles?.avatar_url,
-      }
-    }));
+    return blogs.map(blog => {
+      const profiles = blog.profiles as { username?: string; avatar_url?: string } | null;
+      return {
+        ...blog,
+        author: {
+          username: profiles?.username || "Anonymous",
+          avatar_url: profiles?.avatar_url,
+        }
+      };
+    });
   } catch (error) {
     console.error("Error in getTrendingBlogs:", error);
     return [];
@@ -229,13 +232,16 @@ export async function getBlogsByTopic(topic: string): Promise<BlogWithAuthor[]> 
     }
 
     // Transform the data with safe handling of potentially undefined properties
-    return blogs.map(blog => ({
-      ...blog,
-      author: {
-        username: blog.profiles?.username || "Anonymous",
-        avatar_url: blog.profiles?.avatar_url,
-      }
-    }));
+    return blogs.map(blog => {
+      const profiles = blog.profiles as { username?: string; avatar_url?: string } | null;
+      return {
+        ...blog,
+        author: {
+          username: profiles?.username || "Anonymous",
+          avatar_url: profiles?.avatar_url,
+        }
+      };
+    });
   } catch (error) {
     console.error(`Error in getBlogsByTopic for '${topic}':`, error);
     return [];
@@ -267,13 +273,16 @@ export async function searchBlogs(query: string): Promise<BlogWithAuthor[]> {
     }
 
     // Transform the data with safe handling of potentially undefined properties
-    return blogs.map(blog => ({
-      ...blog,
-      author: {
-        username: blog.profiles?.username || "Anonymous",
-        avatar_url: blog.profiles?.avatar_url,
-      }
-    }));
+    return blogs.map(blog => {
+      const profiles = blog.profiles as { username?: string; avatar_url?: string } | null;
+      return {
+        ...blog,
+        author: {
+          username: profiles?.username || "Anonymous",
+          avatar_url: profiles?.avatar_url,
+        }
+      };
+    });
   } catch (error) {
     console.error(`Error in searchBlogs for '${query}':`, error);
     return [];
